@@ -15,6 +15,7 @@
 #include "caffe/layers/softmax_layer.hpp"
 #include "caffe/layers/tanh_layer.hpp"
 #include "caffe/proto/caffe.pb.h"
+#include "caffe/layers/smooth_pooling_layer.hpp"
 
 #ifdef USE_CUDNN
 #include "caffe/layers/cudnn_conv_layer.hpp"
@@ -237,6 +238,14 @@ shared_ptr<Layer<Dtype> > GetTanHLayer(const LayerParameter& param) {
 }
 
 REGISTER_LAYER_CREATOR(TanH, GetTanHLayer);
+
+// Get smooth pooling layer according to engine.
+template <typename Dtype>
+shared_ptr<Layer<Dtype> > GetSmoothPoolingLayer(const LayerParameter& param) {
+  return shared_ptr<Layer<Dtype> >(new SmoothPoolingLayer<Dtype>(param));
+}
+REGISTER_LAYER_CREATOR(SmoothPooling, GetSmoothPoolingLayer);
+
 
 #ifdef WITH_PYTHON_LAYER
 template <typename Dtype>

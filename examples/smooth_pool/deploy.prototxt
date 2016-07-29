@@ -1,0 +1,24 @@
+name: "AlexNet"
+layer {
+  name: "data"
+  type: "Input"
+  top: "data"
+  input_param { shape: { dim: 10 dim: 3 dim: 27 dim: 27 } }
+}
+layer {
+  name: "pool1"
+  type: "SmoothPooling"
+  bottom: "data"
+  top: "pool1"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  smooth_pooling_param {
+    smooth_filler {
+      type: "constant"
+      value: 100000
+    }
+  }
+}
+
