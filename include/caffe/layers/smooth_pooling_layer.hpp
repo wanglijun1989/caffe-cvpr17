@@ -7,6 +7,7 @@
 #include "caffe/blob.hpp"
 #include "caffe/layer.hpp"
 #include "caffe/proto/caffe.pb.h"
+#include <float.h>
 
 namespace caffe {
 
@@ -33,14 +34,13 @@ class SmoothPoolingLayer : public Layer<Dtype> {
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top);
- // virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
-   //   const vector<Blob<Dtype>*>& top);
+  virtual void Forward_gpu(const vector<Blob<Dtype>*>& bottom,
+      const vector<Blob<Dtype>*>& top);
   virtual void Backward_cpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
-  //virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
-  //    const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
+  virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
+      const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
-  //int kernel_h_, kernel_w_;
   bool has_smooth_blobs_, unique_smooth_;
   int num_;
   int channels_;
@@ -48,7 +48,8 @@ class SmoothPoolingLayer : public Layer<Dtype> {
   int dim_;
   Dtype z_;
   Blob<Dtype> weight_;
-  shared_ptr<Blob<Dtype> > smooth_;
+  Blob<Dtype> w_norm_;
+  Blob<Dtype>*  smooth_;
 };
 template <typename Dtype>
   void project_simplex(const Dtype* v, int n, Dtype mu, Dtype z, Dtype* w);
