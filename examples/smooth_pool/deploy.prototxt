@@ -6,6 +6,12 @@ layer {
   top: "data"
   input_param { shape: { dim: 10 dim: 1000 dim: 40 dim: 40 } }
 }
+layer {
+  name: "mu"
+  type: "Input"
+  top: "mu"
+  input_param { shape: { dim: 10 dim: 1 dim: 1 dim: 1 } }
+}
 
 
 #layer {
@@ -36,36 +42,36 @@ layer {
 #}
 
 
-#layer {
-#  name: "pool1"
-#  type: "SmoothPooling"
-#  bottom: "data"
-#  bottom: "conv1"
-#  top: "pool1"
-#  smooth_pooling_param {
-#    has_smooth_blobs: true
-#    unique_smooth: false
-#  }
-#}
-#
 layer {
   name: "pool1"
   type: "SmoothPooling"
   bottom: "data"
+  bottom: "mu"
   top: "pool1"
-  param {
-    lr_mult: 1
-    decay_mult: 1
-  }
   smooth_pooling_param {
-    unique_smooth: false
-    smooth_filler {
-      type: "constant"
-      value: 30000
-    }
+    has_smooth_blobs: false
+    unique_smooth: true
   }
 }
-
+#
+#layer {
+#  name: "pool1"
+#  type: "SmoothPooling"
+#  bottom: "data"
+#  top: "pool1"
+#  param {
+#    lr_mult: 1
+#    decay_mult: 1
+#  }
+#  smooth_pooling_param {
+#    unique_smooth: true
+#    smooth_filler {
+#      type: "constant"
+#      value: 30000
+#    }
+#  }
+#}
+#
 #layer {
 #  name: "pool2"
 #  type: "Pooling"

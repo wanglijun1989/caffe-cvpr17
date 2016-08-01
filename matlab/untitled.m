@@ -2,16 +2,17 @@ clear
 caffe.set_mode_cpu();
 net_model = ['../examples/smooth_pool/deploy.prototxt'];
 net = caffe.Net(net_model, 'train');
-input = 300*rand(40, 40, 1000, 80);
+input = 300*rand(40, 40, 1000, 10);
+mu = 10*rand(1, 1, 1, 10);
 % out_diff = rand(1, 1, 3, 2);
-out_diff = zeros(1, 1, 1000, 80);
+out_diff = zeros(1, 1, 1000, 10);
 out_diff(1) = 2;
 ave_pool = mean(mean(input));
 ave_pool = ave_pool(:);
 max_pool=max(max(input));
 max_pool = max_pool(:);
 tic;
-out = net.forward({single(input)});
+out = net.forward({single(input), single(mu)});
 net.backward({single(out_diff)});
 toc
 out = out{1};
@@ -24,7 +25,7 @@ caffe.set_mode_gpu();
 % net_model = ['../examples/smooth_pool/deploy.prototxt'];
 % net = caffe.Net(net_model, 'train');
 tic;
-out = net.forward({single(input)});
+out = net.forward({single(input),single(mu)});
 net.backward({single(out_diff)});
 toc
 % conv_diff2 = net.blobs('conv1').get_diff();

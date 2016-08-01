@@ -107,44 +107,36 @@ namespace caffe {
 	  index_data, value_data, unique_smooth_, has_smooth_blobs_, z_, smooth_data, weight_data, w_norm_data, top_data);
       CUDA_POST_KERNEL_CHECK;
     }
+    
+    template <typename Dtype> 
+    __global__ void SmoothPoolBackwardBottom(const int nthreads, const Dtype* top_diff, const Dtype* weight, const int channels, const int dim,  Dtype* bottom_diff) {
+      CUDA_KERNEL_LOOP(index, nthreads) {
+	const int n = index / channels / dim;
+	const int c = (index / dim) % channels;
+	const int id = index % (dim);
+	const Dtype* cur_top_diff = top_diff + n * channels + c;
+	const Dtype* cur_weight = weight + (n * channels + c) * dim + id;
+	Dtype* cur_bottom_diff = bottom_diff + (n * channels + c) * dim + id;
+	cur_bottom_diff[0] = cur_top_diff[0] * cur_weight[0];
+
+      }
+    }
 
 
-  //
-  //
-  //template <typename Dtype>
-  //__global__ void AvePoolBackward(const int nthreads, const Dtype* const top_diff, const int num, const int channels, const int height,
-  //                                const int width, const int pooled_height, const int pooled_width,
-  //                                const int kernel_h, const int kernel_w, const int stride_h,
-  //                                const int stride_w, const int pad_h, const int pad_w,
-  //                                Dtype* const bottom_diff) {
-  //                                  CUDA_KERNEL_LOOP(index, nthreads) {
-  //                                    // find out the local index
-  //                                    // find out the local offset
-  //                                    const int w = index % width + pad_w;
-  //                                    const int h = (index / width) % height + pad_h;
-  //                                    const int c = (index / width / height) % channels;
-  //                                    const int n = index / width / height / channels;
-  //                                    const int phstart = (h < kernel_h) ? 0 : (h - kernel_h) / stride_h + 1;
-  //                                    const int phend = min(h / stride_h + 1, pooled_height);
-  //                                    const int pwstart = (w < kernel_w) ? 0 : (w - kernel_w) / stride_w + 1;
-  //                                    const int pwend = min(w / stride_w + 1, pooled_width);
-  //                                    Dtype gradient = 0;
-  //                                    const Dtype* const top_diff_slice =
-  //                                    top_diff + (n * channels + c) * pooled_height * pooled_width;
-  //                                    for (int ph = phstart; ph < phend; ++ph) {
-  //                                      for (int pw = pwstart; pw < pwend; ++pw) {
-  //                                        // figure out the pooling size
-  //                                        int hstart = ph * stride_h - pad_h;
-  //                                        int wstart = pw * stride_w - pad_w;
-  //                                        int hend = min(hstart + kernel_h, height + pad_h);
-  //                                        int wend = min(wstart + kernel_w, width + pad_w);
-  //                                        int pool_size = (hend - hstart) * (wend - wstart);
-  //                                        gradient += top_diff_slice[ph * pooled_width + pw] / pool_size;
-  //                                      }
-  //                                    }
-  //                                    bottom_diff[index] = gradient;
-  //                                  }
-  //                                }
+     template <typename Dtype> 
+    __global__ void SmoothPoolBackwardUnique(const int nthreads, const Dtype* top_diff, const Dtype* w_norm, const int channels, Dtype* smooth_diff) {
+      CUDA_KERNEL_LOOP(index, nthreads) {
+	const Dtype* cur_top_diff = top_diff + index * channels;
+	const Dtype* cur_w_norm = w_norm + index * channels;
+	Dtype* cur_smooth_diff = smooth_diff + index;
+	cur_smooth_diff[0] = 0;
+	for (int i = 0; i < channels; i++) {
+	  cur_smooth_diff[0] += cur_w_norm[i] * cur_top_diff[i];
+	}
+	cur_smooth_diff[0] *= -Dtype(0.5);
+      }
+    }
+
 
   template <typename Dtype>
     __global__ void SmoothPoolBackward(const int nthreads, const Dtype* top_diff, const int num, const int channels, const Dtype* w_norm_data, Dtype* smooth_diff) {
@@ -174,101 +166,32 @@ namespace caffe {
       const Dtype* weight_data = weight_.gpu_data();
       const Dtype* w_norm_data = w_norm_.gpu_data();
       Dtype* smooth_diff = smooth_->mutable_gpu_diff();
-      Dtype* smooth_cpu_diff = smooth_->mutable_cpu_diff();
       if (propagate_down[0]) {
 	//Gradient with respect to bottom [0]
 	Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
-	const Dtype* top_cpu_diff = top[0]->cpu_diff();
-	caffe_gpu_set(bottom[0]->count(), Dtype(0), bottom_diff);
-	for (int n = 0; n < num_; n++) {
-	  for (int c = 0; c < channels_; c++) {
-	    const Dtype* cur_weight_data = weight_data + weight_.offset(n, c);
-	    Dtype* cur_bottom_diff = bottom_diff + bottom[0]->offset(n, c);
-	    const Dtype* cur_top_diff = top_cpu_diff + top[0]->offset(n, c); 
-	    caffe_gpu_axpy(dim_, cur_top_diff[0], cur_weight_data,  cur_bottom_diff);
-	  }
-	}
+	int count = bottom[0]->count();
+	SmoothPoolBackwardBottom<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, top_diff, weight_data, channels_, dim_,  bottom_diff);
       }
       if (!has_smooth_blobs_ && propagate_down[1]) {
-	smooth_diff = smooth_->mutable_gpu_diff();
-	caffe_gpu_set(smooth_->count(), Dtype(12), smooth_diff);
-        smooth_cpu_diff = smooth_->mutable_cpu_diff();
 	if (unique_smooth_) {
-	  for (int n = 0; n < num_; n++) {
-	    Dtype* cur_smooth_diff = smooth_cpu_diff + n;
-	    const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n);
-	    const Dtype* cur_top_diff = top_diff + top[0]->offset(n);
-	    caffe_gpu_dot(channels_, cur_w_norm, cur_top_diff, cur_smooth_diff);
-	    cur_smooth_diff[0] *= -Dtype(0.5);
-	  }
+	  SmoothPoolBackwardUnique<Dtype><<<CAFFE_GET_BLOCKS(num_), CAFFE_CUDA_NUM_THREADS>>>(num_, top_diff, w_norm_data, channels_, smooth_diff); 
 	} else {
 	  int count = top[0]->count();
-	  smooth_diff = smooth_->mutable_gpu_diff();
 	  caffe_gpu_hadamard_product<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, -Dtype(0.5), top_diff, w_norm_data, smooth_diff);
 	}
       } else if (has_smooth_blobs_ && this->param_propagate_down_[0]) {
 	// Gradient with respect to smooth_ param
-	smooth_cpu_diff = smooth_->mutable_cpu_diff();
 	//caffe_gpu_set(smooth_->count(), Dtype(0), smooth_diff);
 	if (unique_smooth_) {
 	  int count = top[0]->count();
+          Dtype* smooth_cpu_diff = smooth_->mutable_cpu_diff();
 	  caffe_gpu_dot(count, w_norm_data, top_diff, smooth_cpu_diff);
 	  smooth_cpu_diff[0] *= -Dtype(0.5);
 	} else {
-	  smooth_diff = smooth_->mutable_gpu_diff();
 	  SmoothPoolBackward<Dtype><<<CAFFE_GET_BLOCKS(channels_), CAFFE_CUDA_NUM_THREADS>>>(channels_, top_diff, num_, channels_,  w_norm_data, smooth_diff);
 	}
       }
       CUDA_POST_KERNEL_CHECK;
     }
-
-  //  if (!propagate_down[0]) {
-  //    return;
-  //  }
-  //  const Dtype* top_diff = top[0]->gpu_diff();
-  //  Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
-  //  const int count = bottom[0]->count();
-  //  caffe_gpu_set(count, Dtype(0.), bottom_diff);
-  //  // We'll output the mask to top[1] if it's of size >1.
-  //  const bool use_top_mask = top.size() > 1;
-  //  const int* mask = NULL;
-  //  const Dtype* top_mask = NULL;
-  //  switch (this->layer_param_.pooling_param().pool()) {
-  //    case PoolingParameter_PoolMethod_MAX:
-  //      if (use_top_mask) {
-  //        top_mask = top[1]->gpu_data();
-  //      } else {
-  //        mask = max_idx_.gpu_data();
-  //      }
-  //      // NOLINT_NEXT_LINE(whitespace/operators)
-  //      MaxPoolBackward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
-  //          count, top_diff, mask, top_mask, top[0]->num(), channels_,
-  //          height_, width_, pooled_height_, pooled_width_,
-  //          kernel_h_, kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_,
-  //          bottom_diff);
-  //      break;
-  //    case PoolingParameter_PoolMethod_AVE:
-  //      // NOLINT_NEXT_LINE(whitespace/operators)
-  //      AvePoolBackward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
-  //          count, top_diff, top[0]->num(), channels_,
-  //          height_, width_, pooled_height_, pooled_width_, kernel_h_,
-  //          kernel_w_, stride_h_, stride_w_, pad_h_, pad_w_, bottom_diff);
-  //      break;
-  //    case PoolingParameter_PoolMethod_STOCHASTIC:
-  //      // NOLINT_NEXT_LINE(whitespace/operators)
-  //      StoPoolBackward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(
-  //          count, rand_idx_.gpu_data(), top_diff,
-  //          top[0]->num(), channels_, height_, width_, pooled_height_,
-  //          pooled_width_, kernel_h_, kernel_w_, stride_h_, stride_w_,
-  //          bottom_diff);
-  //      break;
-  //    default:
-  //      LOG(FATAL) << "Unknown pooling method.";
-  //  }
-  //  CUDA_POST_KERNEL_CHECK;
-
-
   INSTANTIATE_LAYER_GPU_FUNCS(SmoothPoolingLayer);
-
-
 }  // namespace caffe

@@ -25,9 +25,9 @@ class SmoothPoolingLayerTest : public MultiDeviceTest<TypeParam> {
 
  protected:
   SmoothPoolingLayerTest()
-      : blob_bottom_(new Blob<Dtype>(2, 3, 10, 10)),
+      : blob_bottom_(new Blob<Dtype>(2, 2, 3, 3)),
         blob_bottom_2_(new Blob<Dtype>(2, 1, 1, 1)),
-	blob_bottom_3_(new Blob<Dtype>(2, 3, 1, 1)),
+	blob_bottom_3_(new Blob<Dtype>(2, 2, 1, 1)),
         blob_top_(new Blob<Dtype>()) {}
   virtual void SetUp() {
     // fill the values
