@@ -208,7 +208,6 @@ void SmoothPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top, co
 
 	}
       }
-      LOG(INFO) << "cpu smooth_diff " << smooth_diff[0];
     } else {
       for (int n = 0; n < num_; n++) {
 	for (int c = 0; c < channels_; c++) {
@@ -218,9 +217,7 @@ void SmoothPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top, co
           *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
 	}
       }
-      for (int i = 0; i < channels_; i++) {
-	LOG(INFO) << "cpu smooth_diff " << smooth_diff[i];
-      }
+      
 
     }
   }
