@@ -85,7 +85,8 @@ namespace caffe {
 	  w_norm[0] += w[i] * w[i];
 	  o[0] += cur_bottom[i] * Dtype(w[i]);
 	}
-	o[0] -= Dtype(0.5) * mu * w_norm[0];
+	w_norm[0] *= -Dtype(0.5);
+	o[0] += mu * w_norm[0];
       }
     }
 
@@ -133,7 +134,7 @@ namespace caffe {
 	for (int i = 0; i < channels; i++) {
 	  cur_smooth_diff[0] += cur_w_norm[i] * cur_top_diff[i];
 	}
-	cur_smooth_diff[0] *= -Dtype(0.5);
+	//cur_smooth_diff[0] *= -Dtype(0.5);
       }
     }
 
@@ -147,14 +148,14 @@ namespace caffe {
 	for (int i = 0; i < num; i++) {
 	  smooth_diff[index] += cur_top_diff[i*channels] * cur_w_norm[i*channels];
 	}
-	smooth_diff[index] *= -Dtype(0.5); 
+	//smooth_diff[index] *= -Dtype(0.5); 
       }
     }
 
   template <typename Dtype>
-    __global__ void caffe_gpu_hadamard_product(const int nthreads, const Dtype alpha, const Dtype* a, const Dtype* b, Dtype* c) {
+    __global__ void caffe_gpu_hadamard_product(const int nthreads, const Dtype* a, const Dtype* b, Dtype* c) {
       CUDA_KERNEL_LOOP(index, nthreads) {
-	c[index] = alpha * a[index] * b[index];
+	c[index] = a[index] * b[index];
 	}
     }
 
@@ -165,7 +166,6 @@ namespace caffe {
       const Dtype* top_diff = top[0]->gpu_diff();
       const Dtype* weight_data = weight_.gpu_data();
       const Dtype* w_norm_data = w_norm_.gpu_data();
-      Dtype* smooth_diff = smooth_->mutable_gpu_diff();
       if (propagate_down[0]) {
 	//Gradient with respect to bottom [0]
 	Dtype* bottom_diff = bottom[0]->mutable_gpu_diff();
@@ -173,11 +173,12 @@ namespace caffe {
 	SmoothPoolBackwardBottom<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, top_diff, weight_data, channels_, dim_,  bottom_diff);
       }
       if (!has_smooth_blobs_ && propagate_down[1]) {
+	Dtype* smooth_diff = smooth_->mutable_gpu_diff();
 	if (unique_smooth_) {
 	  SmoothPoolBackwardUnique<Dtype><<<CAFFE_GET_BLOCKS(num_), CAFFE_CUDA_NUM_THREADS>>>(num_, top_diff, w_norm_data, channels_, smooth_diff); 
 	} else {
 	  int count = top[0]->count();
-	  caffe_gpu_hadamard_product<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, -Dtype(0.5), top_diff, w_norm_data, smooth_diff);
+	  caffe_gpu_hadamard_product<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, top_diff, w_norm_data, smooth_diff);
 	}
       } else if (has_smooth_blobs_ && this->param_propagate_down_[0]) {
 	// Gradient with respect to smooth_ param
@@ -186,8 +187,9 @@ namespace caffe {
 	  int count = top[0]->count();
           Dtype* smooth_cpu_diff = smooth_->mutable_cpu_diff();
 	  caffe_gpu_dot(count, w_norm_data, top_diff, smooth_cpu_diff);
-	  smooth_cpu_diff[0] *= -Dtype(0.5);
+	  //smooth_cpu_diff[0] *= -Dtype(0.5);
 	} else {
+          Dtype* smooth_diff = smooth_->mutable_gpu_diff();
 	  SmoothPoolBackward<Dtype><<<CAFFE_GET_BLOCKS(channels_), CAFFE_CUDA_NUM_THREADS>>>(channels_, top_diff, num_, channels_,  w_norm_data, smooth_diff);
 	}
       }
