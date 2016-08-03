@@ -227,6 +227,11 @@ class Net {
   /// @brief return whether NetState state meets NetStateRule rule
   static bool StateMeetsRule(const NetState& state, const NetStateRule& rule,
       const string& layer_name);
+  inline void set_input_dim(int id, int num, int ch, int h, int w) {
+    net_input_blobs_[id]->Reshape(num, ch, h, w);
+  }
+
+  void set_net_phase(Phase phase);
 
  protected:
   // Helpers for Init.

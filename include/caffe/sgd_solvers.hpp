@@ -22,6 +22,10 @@ class SGDSolver : public Solver<Dtype> {
   virtual inline const char* type() const { return "SGD"; }
 
   const vector<shared_ptr<Blob<Dtype> > >& history() { return history_; }
+  virtual void MatCaffeApplyUpdate() {
+    ApplyUpdate();
+  }
+  virtual void MatCaffeSnapshot(const string& solver_name, const string& model_name);
 
  protected:
   void PreSolve();

@@ -345,6 +345,22 @@ void SGDSolver<Dtype>::RestoreSolverStateFromHDF5(const string& state_file) {
   H5Gclose(history_hid);
   H5Fclose(file_hid);
 }
+template <typename Dtype>
+void SGDSolver<Dtype>::MatCaffeSnapshot(const string& solver_name, const string& model_name) {
+  SolverState state;
+  state.set_iter(this->iter_);
+  state.set_learned_net(model_name);
+  state.set_current_step(this->current_step_);
+  state.clear_history();
+  for (int i = 0; i < history_.size(); ++i) {
+    // Add history
+    BlobProto* history_blob = state.add_history();
+    history_[i]->ToProto(history_blob);
+  }
+  LOG(INFO)
+    << "Snapshotting solver state to binary proto file" << solver_name;
+  WriteProtoToBinaryFile(state, solver_name.c_str());
+}
 
 INSTANTIATE_CLASS(SGDSolver);
 REGISTER_SOLVER_CLASS(SGD);

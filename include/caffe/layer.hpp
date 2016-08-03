@@ -316,6 +316,9 @@ class Layer {
     param_propagate_down_[param_id] = value;
   }
 
+  inline void set_phase(Phase phase) {
+    phase_ = phase;
+  }
 
  protected:
   /** The protobuf that stores the layer parameters */

@@ -74,6 +74,9 @@ class Solver {
   }
   int iter() { return iter_; }
 
+  virtual void MatCaffeApplyUpdate()  {};
+  virtual void MatCaffeSnapshot(const string& solver_name, const string& model_filename) {}
+
   // Invoked at specific points during an iteration
   class Callback {
    protected:

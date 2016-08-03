@@ -310,6 +310,7 @@ static void net_backward(MEX_ARGS) {
       "Usage: caffe_('net_backward', hNet)");
   Net<float>* net = handle_to_ptr<Net<float> >(prhs[0]);
   net->Backward();
+  //LOG(INFO) << "end of matcaffe net_backward";
 }
 
 // Usage: caffe_('net_copy_from', hNet, weights_file)
@@ -466,6 +467,22 @@ static void reset(MEX_ARGS) {
   init_key = static_cast<double>(caffe_rng_rand());
 }
 
+// Usage: caffe_('reset_by_index', index); index must be an descending order
+static void delete_solver(MEX_ARGS) {
+  mxCHECK(nrhs == 1, "Usage: caffe_('delete_solver', index)");
+  int num_solver = mxGetNumberOfElements(prhs[0]);
+  double* index = mxGetPr(prhs[0]);
+  for (int i = 0; i < num_solver; i++) {
+    LOG(INFO) << "solver size: " << solvers_.size();
+    solvers_.erase(solvers_.begin() + static_cast<int>(index[i]) - 1);
+  }
+
+  // Clear solvers and stand-alone nets
+  mexPrintf("Cleared %d solvers\n", num_solver);
+  // Generate new init_key, so that handles created before becomes invalid
+  // init_key = static_cast<double>(caffe_rng_rand());
+}
+
 // Usage: caffe_('read_mean', mean_proto_file)
 static void read_mean(MEX_ARGS) {
   mxCHECK(nrhs == 1 && mxIsChar(prhs[0]),
@@ -481,6 +498,96 @@ static void read_mean(MEX_ARGS) {
   mxFree(mean_proto_file);
 }
 
+// Usage: caffe_('set_net_phase', hNet, phase_name)
+static void set_net_phase(MEX_ARGS) {
+  mxCHECK(nrhs == 2 && mxIsStruct(prhs[0]) && mxIsChar(prhs[1]),
+      "Usage: caffe_('set_net_phase', hNet, phase_name)");
+  char* phase_name = mxArrayToString(prhs[1]);
+  Phase phase;
+  if (strcmp(phase_name, "train") == 0) {
+    phase = TRAIN;
+  } else if (strcmp(phase_name, "test") == 0) {
+    phase = TEST;
+  } else {
+    mxERROR("Unknown phase");
+  }
+  Net<float>* net = handle_to_ptr<Net<float> >(prhs[0]);
+  net->set_net_phase(phase);
+  mxFree(phase_name);
+}
+
+// Usage: caffe_('empty_net_param_diff', hNet)
+static void empty_net_param_diff(MEX_ARGS) {
+  mxCHECK(nrhs == 1 && mxIsStruct(prhs[0]),
+      "Usage: caffe_('empty_net_param_diff', hNet)");
+  Net<float>* net = handle_to_ptr<Net<float> >(prhs[0]);
+  for (int i = 0; i < net->params().size(); ++i) {
+    shared_ptr<Blob<float> > blob = net->params()[i];
+    switch (Caffe::mode()) {
+      case Caffe::CPU:
+	caffe_set(blob->count(), static_cast<float>(0),
+	    blob->mutable_cpu_diff());
+	break;
+      case Caffe::GPU:
+#ifndef CPU_ONLY
+	caffe_gpu_set(blob->count(), static_cast<float>(0),
+	    blob->mutable_gpu_diff());
+#else
+	NO_GPU;
+#endif
+	break;
+    }
+  }
+}
+
+// Usage: caffe_('apply_update', hSolver)
+static void apply_update(MEX_ARGS) {
+  mxCHECK(nrhs == 1 && mxIsStruct(prhs[0]),
+      "Usage: caffe_('apply_update', hSolver)");
+  Solver<float>* solver = handle_to_ptr<Solver<float> >(prhs[0]);
+  solver->MatCaffeApplyUpdate();
+}
+
+// Usage: caffe_('set_input_dim', hNet, dim)
+static void set_input_dim(MEX_ARGS) {
+  int blob_num = mxGetM(prhs[1]);
+  int dim_num = mxGetN(prhs[1]);
+  mxCHECK(nrhs == 2 && mxIsStruct(prhs[0]) && dim_num == 5,
+      "Usage: caffe_('set_input_dim', hNet, dim)");
+  Net<float>* net = handle_to_ptr<Net<float> >(prhs[0]);
+  double* dim = mxGetPr(prhs[1]);
+  for (int blob_id = 0; blob_id < blob_num; blob_id++) {
+    int id = static_cast<int>(dim[0*blob_num]);
+    int n = static_cast<int>(dim[1*blob_num]);
+    int c = static_cast<int>(dim[2*blob_num]);
+    int h = static_cast<int>(dim[3*blob_num]);
+    int w = static_cast<int>(dim[4*blob_num]);
+    LOG(INFO) << "Reshape input blob.";
+    LOG(INFO) << "Input_id = " << id;
+    LOG(INFO) << "num = " << n;
+    LOG(INFO) << "channel = " << c;
+    LOG(INFO) << "height = " << h;
+    LOG(INFO) << "width = " << w;
+    net->input_blobs()[id]->Reshape(n, c, h, w);
+    dim += 1;
+  }
+  // Reshape each layer of the network
+  net->Reshape();
+}
+
+
+
+
+
+// Usage: caffe_('snapshot', hSolver, solver_name, model_name)
+static void snapshot(MEX_ARGS) {
+  mxCHECK(nrhs == 3 && mxIsStruct(prhs[0]),
+      "Usage: caffe_('snapshot', hSolver, solver_name, model_name)");
+  Solver<float>* solver = handle_to_ptr<Solver<float> >(prhs[0]);
+  string solver_name(mxArrayToString(prhs[1]));
+  string model_name(mxArrayToString(prhs[2]));
+  solver->MatCaffeSnapshot(solver_name, model_name);
+}
 // Usage: caffe_('write_mean', mean_data, mean_proto_file)
 static void write_mean(MEX_ARGS) {
   mxCHECK(nrhs == 2 && mxIsSingle(prhs[0]) && mxIsChar(prhs[1]),
@@ -521,37 +628,43 @@ struct handler_registry {
 
 static handler_registry handlers[] = {
   // Public API functions
-  { "get_solver",         get_solver      },
-  { "solver_get_attr",    solver_get_attr },
-  { "solver_get_iter",    solver_get_iter },
-  { "solver_restore",     solver_restore  },
-  { "solver_solve",       solver_solve    },
-  { "solver_step",        solver_step     },
-  { "get_net",            get_net         },
-  { "net_get_attr",       net_get_attr    },
-  { "net_forward",        net_forward     },
-  { "net_backward",       net_backward    },
-  { "net_copy_from",      net_copy_from   },
-  { "net_reshape",        net_reshape     },
-  { "net_save",           net_save        },
-  { "layer_get_attr",     layer_get_attr  },
-  { "layer_get_type",     layer_get_type  },
-  { "blob_get_shape",     blob_get_shape  },
-  { "blob_reshape",       blob_reshape    },
-  { "blob_get_data",      blob_get_data   },
-  { "blob_set_data",      blob_set_data   },
-  { "blob_get_diff",      blob_get_diff   },
-  { "blob_set_diff",      blob_set_diff   },
-  { "set_mode_cpu",       set_mode_cpu    },
-  { "set_mode_gpu",       set_mode_gpu    },
-  { "set_device",         set_device      },
-  { "get_init_key",       get_init_key    },
-  { "reset",              reset           },
-  { "read_mean",          read_mean       },
+  { "get_solver",           get_solver           },
+  { "solver_get_attr",      solver_get_attr      },
+  { "solver_get_iter",      solver_get_iter      },
+  { "solver_restore",       solver_restore       },
+  { "solver_solve",         solver_solve         },
+  { "solver_step",          solver_step          },
+  { "get_net",              get_net              },
+  { "net_get_attr",         net_get_attr         },
+  { "net_forward",          net_forward          },
+  { "net_backward",         net_backward         },
+  { "net_copy_from",        net_copy_from        },
+  { "net_reshape",          net_reshape          },
+  { "net_save",             net_save             },
+  { "layer_get_attr",       layer_get_attr       },
+  { "layer_get_type",       layer_get_type       },
+  { "blob_get_shape",       blob_get_shape       },
+  { "blob_reshape",         blob_reshape         },
+  { "blob_get_data",        blob_get_data        },
+  { "blob_set_data",        blob_set_data        },
+  { "blob_get_diff",        blob_get_diff        },
+  { "blob_set_diff",        blob_set_diff        },
+  { "set_mode_cpu",         set_mode_cpu         },
+  { "set_mode_gpu",         set_mode_gpu         },
+  { "set_device",           set_device           },
+  { "get_init_key",         get_init_key         },
+  { "reset",                reset                },
+  { "delete_solver",        delete_solver        },
+  { "read_mean",            read_mean            },
+  { "set_net_phase",        set_net_phase        },    
+  { "empty_net_param_diff", empty_net_param_diff },
+  { "apply_update",         apply_update         },
+  { "set_input_dim",        set_input_dim        },
+  { "snapshot",             snapshot             },
   { "write_mean",         write_mean      },
   { "version",            version         },
   // The end.
-  { "END",                NULL            },
+  { "END",                  NULL                 },
 };
 
 /** -----------------------------------------------------------------

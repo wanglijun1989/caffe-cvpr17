@@ -994,6 +994,14 @@ const shared_ptr<Layer<Dtype> > Net<Dtype>::layer_by_name(
   return layer_ptr;
 }
 
+template <typename Dtype>
+void Net<Dtype>::set_net_phase(Phase phase) {
+  phase_ = phase;
+  for (int layer_id = 0; layer_id < layers_.size(); layer_id++) {
+    layers_[layer_id]->set_phase(phase);
+  }
+}
+
 INSTANTIATE_CLASS(Net);
 
 }  // namespace caffe
