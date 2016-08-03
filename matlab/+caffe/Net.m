@@ -129,5 +129,21 @@ classdef Net < handle
       CHECK(ischar(weights_file), 'weights_file must be a string');
       caffe_('net_save', self.hNet_self, weights_file);
     end
+    function set_net_phase(self, phase)
+        CHECK(ischar(phase), 'phase must be a string.');
+        caffe_('set_net_phase', self.hNet_self, phase);
+    end
+    function empty_net_param_diff(self)
+        caffe_('empty_net_param_diff', self.hNet_self);
+    end
+    function set_input_dim(self, dim)
+        caffe_('set_input_dim', self.hNet_self, dim);
+    end
+    function cnn2fcn(self, param)
+        caffe_('cnn2fcn', self.hNet_self, param);
+    end
+    function fcn2cnn(self, pad)
+        caffe_('fcn2cnn', self.hNet_self, pad);
+    end
   end
 end
