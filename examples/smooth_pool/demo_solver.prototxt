@@ -3,7 +3,7 @@ net: '/home/lijun/Research/Code/caffe-blvc/examples/smooth_pool/demo_train.proto
 #test_interval: 1000
 ##update_interval: 2
 lr_policy: "step"
-base_lr: 100000
+base_lr: 1000000
 gamma: 0.1
 stepsize: 120000
 display: 1

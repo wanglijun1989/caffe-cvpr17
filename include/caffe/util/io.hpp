@@ -91,6 +91,7 @@ inline void WriteProtoToBinaryFile(
 }
 
 bool ReadFileToDatum(const string& filename, const int label, Datum* datum);
+bool ReadMultiLabelFileToDatum(const string& filename, const std::vector<int> label, Datum* datum);
 
 inline bool ReadFileToDatum(const string& filename, Datum* datum) {
   return ReadFileToDatum(filename, -1, datum);
@@ -105,6 +106,10 @@ inline bool ReadImageToDatum(const string& filename, const int label,
   return ReadImageToDatum(filename, label, height, width, is_color,
                           "", datum);
 }
+bool ReadImageToMultiLabelDatum(const string& filename, const std::vector<int> label,
+    const int height, const int width, const bool is_color,
+    const std::string & encoding, Datum* datum);
+
 
 inline bool ReadImageToDatum(const string& filename, const int label,
     const int height, const int width, Datum* datum) {

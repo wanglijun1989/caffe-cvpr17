@@ -3,10 +3,10 @@ caffe.set_mode_gpu();
 net_file = ['../examples/smooth_pool/demo_train.prototxt'];
 solver_file = ['../examples/smooth_pool/demo_solver.prototxt'];
 % net = caffe.Net(net_model, 'train');
-input = rand(10, 10, 2, 1);
-input(1:20) = 30 * rand(20,1);
-input(1,1,2,1) = max(input(:));
-input(2,1,2,1) = max(input(:));
+% input = rand(10, 10, 2, 1);
+% input(1:20) = 30 * rand(20,1);
+input(1,1,1,1) = 100;%max(input(:));
+input(1,1,2,1) = 100;%max(input(:));
 solver = caffe.Solver(solver_file);
 
 
