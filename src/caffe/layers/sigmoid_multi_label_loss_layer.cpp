@@ -52,9 +52,9 @@ void SigmoidMultiLabelLossLayer<Dtype>::Forward_cpu(
   const Dtype* label = bottom[1]->cpu_data();
   int* label_vector_data = label_vector_.mutable_cpu_data();
   caffe_set(label_vector_.count(), int(0), label_vector_data);
-  int n = bottom[0]->num();
+  int num = bottom[0]->num();
   Dtype loss = 0;
-  for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < num; ++i) {
     const Dtype* cur_label = label + i * label_size_;
     const Dtype* cur_prob = prob_data + i * bottom_dim_;
     int* cur_label_vector_data = label_vector_data + i * bottom_dim_ ;
@@ -69,7 +69,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::Forward_cpu(
       loss -= cur_label_vector_data[o] * log(std::max(cur_prob[o], Dtype(kLOG_THRESHOLD))) + (1 - cur_label_vector_data[o]) * log(std::max(1 - cur_prob[o], Dtype(kLOG_THRESHOLD)));
     }
   }
-  top[0]->mutable_cpu_data()[0] = loss / n / bottom_dim_;
+  top[0]->mutable_cpu_data()[0] = loss / num / bottom_dim_;
   if (top.size() == 2) {
     top[1]->ShareData(*bottom[0]);
   }
@@ -86,8 +86,8 @@ void SigmoidMultiLabelLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>&
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
     const int* label_vector_data = label_vector_.cpu_data();
     const Dtype* prob_data = prob_.cpu_data();
-    int n = bottom[0]->num();
-    for (int i = 0; i < n; ++i) {
+    int num = bottom[0]->num();
+    for (int i = 0; i < num; ++i) {
     const int* cur_label_vector_data = label_vector_data + i * bottom_dim_ ;
     const Dtype* cur_prob = prob_data + i * bottom_dim_;
     Dtype* cur_bottom_diff = bottom_diff + i * bottom_dim_;
@@ -97,7 +97,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>&
       }
     }
     // Scale gradient
-    Dtype loss_weight = top[0]->cpu_diff()[0] / n / bottom_dim_;
+    Dtype loss_weight = top[0]->cpu_diff()[0] / num / bottom_dim_;
     caffe_scal(prob_.count(), loss_weight, bottom_diff);
   }
 }

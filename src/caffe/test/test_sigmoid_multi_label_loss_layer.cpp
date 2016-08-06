@@ -56,7 +56,7 @@ class SigmoidMultiLabelLayerTest : public MultiDeviceTest<TypeParam> {
   vector<Blob<Dtype>*> blob_top_vec_;
 };
 
-TYPED_TEST_CASE(SigmoidMultiLabelLayerTest, TestDtypesCPU);
+TYPED_TEST_CASE(SigmoidMultiLabelLayerTest, TestDtypesAndDevices);
 
 TYPED_TEST(SigmoidMultiLabelLayerTest, TestGradient) {
   typedef typename TypeParam::Dtype Dtype;
