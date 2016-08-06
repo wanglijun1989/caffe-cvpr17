@@ -26,6 +26,10 @@ template <typename Dtype>
 void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
   const int batch_size = this->layer_param_.data_param().batch_size();
+  multi_label_ = this->layer_param_.data_param().multi_label();
+  if (multi_label_) {
+    label_size_ = this->layer_param_.data_param().label_size();
+  }
   // Read a data point, and use it to initialize the top blob.
   Datum& datum = *(reader_.full().peek());
 
@@ -43,10 +47,17 @@ void DataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
       << top[0]->width();
   // label
   if (this->output_labels_) {
-    vector<int> label_shape(1, batch_size);
-    top[1]->Reshape(label_shape);
-    for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-      this->prefetch_[i].label_.Reshape(label_shape);
+    if (multi_label_) {
+      top[1]->Reshape(batch_size, label_size_, 1, 1);
+      for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
+	this->prefetch_[i].label_.Reshape(batch_size, label_size_, 1, 1);
+      }
+    } else {
+      vector<int> label_shape(1, batch_size);
+      top[1]->Reshape(label_shape);
+      for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
+	this->prefetch_[i].label_.Reshape(label_shape);
+      }
     }
   }
 }
@@ -91,10 +102,19 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
     this->data_transformer_->Transform(datum, &(this->transformed_data_));
     // Copy label.
     if (this->output_labels_) {
-      top_label[item_id] = datum.label();
+      if(multi_label_) {
+	for (int label_id = 0; label_id < label_size_; label_id++) {
+	  if (label_id < datum.multi_label_size()) {
+	    top_label[item_id * label_size_ + label_id] = datum.multi_label(label_id);
+	  } else {
+	    top_label[item_id * label_size_ + label_id] = 0;
+	  }
+	}
+      } else {
+	  top_label[item_id] = datum.label();
+      }
     }
     trans_time += timer.MicroSeconds();
-
     reader_.free().push(const_cast<Datum*>(&datum));
   }
   timer.Stop();

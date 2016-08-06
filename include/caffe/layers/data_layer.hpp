@@ -32,6 +32,8 @@ class DataLayer : public BasePrefetchingDataLayer<Dtype> {
   virtual void load_batch(Batch<Dtype>* batch);
 
   DataReader reader_;
+  bool multi_label_;
+  int label_size_;
 };
 
 }  // namespace caffe
