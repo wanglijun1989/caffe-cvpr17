@@ -65,6 +65,7 @@ shared_ptr<Layer<Dtype> > GetConvolutionLayer(
       LOG(FATAL) << "CuDNN doesn't support the dilated convolution at Layer "
                  << param.name();
     }
+    LOG(INFO) << "Use CuDNNConvolutionLayer";
     return shared_ptr<Layer<Dtype> >(new CuDNNConvolutionLayer<Dtype>(param));
 #endif
   } else {

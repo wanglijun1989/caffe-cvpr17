@@ -1,0 +1,16 @@
+net: "examples/cvpr17/exp_train_val.prototxt"
+test_iter: 1000
+test_interval: 2000
+base_lr: 0.01
+lr_policy: "step"
+gamma: 0.1
+stepsize: 100000
+display: 20
+max_iter: 450000
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 2000
+snapshot_prefix: "models/cvpr17/ILT-exp"
+solver_mode: GPU
+test_compute_loss: true
+device_id: 1
