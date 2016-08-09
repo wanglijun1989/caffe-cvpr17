@@ -37,7 +37,7 @@ layer {
     mean_value: 103.939
     mean_value: 116.779
     mean_value: 123.68
-    mirror: true
+    mirror: false
   }
   data_param {
     source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_val_lmdb"

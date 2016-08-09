@@ -39,15 +39,15 @@ fi
 #  exit 1
 #fi
 
-echo "Creating train lmdb..."
-
-GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
-    --resize_height=$RESIZE_HEIGHT \
-    --resize_width=$RESIZE_WIDTH \
-    --shuffle \
-    $TRAIN_DATA_ROOT \
-    $TRAIN_LIST_PATH/small_train.txt \
-    $LMDB_PATH/small_train_lmdb
+#echo "Creating small lmdb..."
+#
+#GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
+#    --resize_height=$RESIZE_HEIGHT \
+#    --resize_width=$RESIZE_WIDTH \
+#    --shuffle \
+#    $TRAIN_DATA_ROOT \
+#    $TRAIN_LIST_PATH/small_train.txt \
+#    $LMDB_PATH/small_train_lmdb
 
 #rm $LMDB_PATH/ilsvrc14_train_lmdb -r
 #GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
@@ -58,17 +58,18 @@ GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
 #    $TRAIN_LIST_PATH/train.txt \
 #    $LMDB_PATH/ilsvrc14_train_lmdb
 #
-#echo "Creating val lmdb..."
-#rm $LMDB_PATH/ilsvrc14_val_lmdb -r
-#
-#GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
-#    --resize_height=$RESIZE_HEIGHT \
-#    --resize_width=$RESIZE_WIDTH \
-#    --shuffle \
-#    $VAL_DATA_ROOT \
-#    $TRAIN_LIST_PATH/val.txt \
-#    $LMDB_PATH/ilsvrc14_val_lmdb
-#
+
+echo "Creating val lmdb..."
+rm $LMDB_PATH/ilsvrc14_val_lmdb -r
+
+GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
+    --resize_height=$RESIZE_HEIGHT \
+    --resize_width=$RESIZE_WIDTH \
+    --shuffle \
+    $VAL_DATA_ROOT \
+    $TRAIN_LIST_PATH/val.txt \
+    $LMDB_PATH/ilsvrc14_val_lmdb
+
 
 
 #GLOG_logtostderr=1 $TOOLS/convert_imageset \
