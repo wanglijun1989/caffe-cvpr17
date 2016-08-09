@@ -9,6 +9,10 @@ TOOLS=build/tools
 TRAIN_DATA_ROOT=/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ILSVRC2014_DET_train/
 TRAIN_LIST_PATH=/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/
 VAL_DATA_ROOT=/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ILSVRC2013_DET_val/
+#LMDB_PATH=/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/
+LMDB_PATH=/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/
+
+
 
 # Set RESIZE=true to resize the images to 256x256. Leave as false if images have
 # already been resized using another tool.
@@ -35,26 +39,36 @@ fi
 #  exit 1
 #fi
 
-#echo "Creating train lmdb..."
-#
+echo "Creating train lmdb..."
+
+GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
+    --resize_height=$RESIZE_HEIGHT \
+    --resize_width=$RESIZE_WIDTH \
+    --shuffle \
+    $TRAIN_DATA_ROOT \
+    $TRAIN_LIST_PATH/small_train.txt \
+    $LMDB_PATH/small_train_lmdb
+
+#rm $LMDB_PATH/ilsvrc14_train_lmdb -r
 #GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
 #    --resize_height=$RESIZE_HEIGHT \
 #    --resize_width=$RESIZE_WIDTH \
 #    --shuffle \
 #    $TRAIN_DATA_ROOT \
 #    $TRAIN_LIST_PATH/train.txt \
-#    $TRAIN_LIST_PATH/ilsvrc14_train_lmdb
-
-echo "Creating val lmdb..."
-
-GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
-    --resize_height=$RESIZE_HEIGHT \
-    --resize_width=$RESIZE_WIDTH \
-    --shuffle \
-    $VAL_DATA_ROOT \
-    $TRAIN_LIST_PATH/val.txt \
-    $TRAIN_LIST_PATH/ilsvrc14_val_lmdb
-
+#    $LMDB_PATH/ilsvrc14_train_lmdb
+#
+#echo "Creating val lmdb..."
+#rm $LMDB_PATH/ilsvrc14_val_lmdb -r
+#
+#GLOG_logtostderr=1 $TOOLS/convert_imageset_multilabel \
+#    --resize_height=$RESIZE_HEIGHT \
+#    --resize_width=$RESIZE_WIDTH \
+#    --shuffle \
+#    $VAL_DATA_ROOT \
+#    $TRAIN_LIST_PATH/val.txt \
+#    $LMDB_PATH/ilsvrc14_val_lmdb
+#
 
 
 #GLOG_logtostderr=1 $TOOLS/convert_imageset \

@@ -4,8 +4,8 @@ name: "VGG_ILSVRC_16_layers"
 input: "data"
 input_dim: 1
 input_dim: 3
-input_dim: 224
-input_dim: 224
+input_dim: 256 #224
+input_dim: 256 #224
 
 layer {
   name: "conv1_1"
@@ -298,7 +298,7 @@ layer {
   pooling_param {
     pool: MAX
     kernel_size: 2
-    stride: 2
+    stride: 1
   }
 }
 layer {
@@ -316,8 +316,9 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
   }
 }
 layer {
@@ -341,8 +342,9 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
   }
 }
 layer {
@@ -366,8 +368,9 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
   }
 }
 layer {
@@ -391,9 +394,10 @@ layer {
   }
   convolution_param {
     num_output: 1024
-    pad: 1
+    pad: 2
     kernel_size: 3
     group: 2
+    dilation: 2
     weight_filler {
       type: "gaussian"
       std: 0.01
@@ -417,8 +421,9 @@ layer {
   top: "CAM_pool"
   pooling_param {
     pool: AVE
-    kernel_size: 14
-    stride: 14
+    global_pooling: true
+    #kernel_size: 14
+    #stride: 14
   }
 }
 layer {

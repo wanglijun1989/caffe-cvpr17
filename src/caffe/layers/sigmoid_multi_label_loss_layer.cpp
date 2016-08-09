@@ -27,6 +27,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::LayerSetUp(
   label_size_ = bottom[1]->count(1, 4);
   bottom_dim_ = bottom[0]->channels();
   label_vector_.Reshape(bottom[0]->num(), bottom_dim_, 1, 1);
+  negative_scale_ = Dtype(this->layer_param_.loss_param().negative_scale());
 }
 
 template <typename Dtype>
@@ -66,7 +67,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::Forward_cpu(
       cur_label_vector_data[label_value-1] = 1;
     }
     for (int o = 0; o < bottom_dim_; o++) {
-      loss -= cur_label_vector_data[o] * log(std::max(cur_prob[o], Dtype(kLOG_THRESHOLD))) + (1 - cur_label_vector_data[o]) * log(std::max(1 - cur_prob[o], Dtype(kLOG_THRESHOLD)));
+      loss -= cur_label_vector_data[o] * log(std::max(cur_prob[o], Dtype(kLOG_THRESHOLD))) + negative_scale_ * (1 - cur_label_vector_data[o]) * log(std::max(1 - cur_prob[o], Dtype(kLOG_THRESHOLD)));
     }
   }
   top[0]->mutable_cpu_data()[0] = loss / num / bottom_dim_;
@@ -92,7 +93,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>&
     const Dtype* cur_prob = prob_data + i * bottom_dim_;
     Dtype* cur_bottom_diff = bottom_diff + i * bottom_dim_;
       for (int j = 0; j < bottom_dim_; ++j) {
-	cur_bottom_diff[j] = - cur_label_vector_data[j] * (1 - cur_prob[j]) + (1-cur_label_vector_data[j]) * cur_prob[j];
+	cur_bottom_diff[j] = - cur_label_vector_data[j] * (1 - cur_prob[j]) + negative_scale_ * (1-cur_label_vector_data[j]) * cur_prob[j];
 //	cur_bottom_diff[j] = 0;
       }
     }

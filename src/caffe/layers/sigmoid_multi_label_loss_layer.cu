@@ -10,7 +10,7 @@ namespace caffe {
 
 template <typename Dtype>
 __global__ void SigmoidMultiLabelLossForwardGPU(const int nthreads,
-          const Dtype* prob_data, const Dtype* label, const int label_size, const int bottom_dim, int* label_vector_data, Dtype* loss) {
+          const Dtype* prob_data, const Dtype* label, const int label_size, const int bottom_dim, Dtype negative_scale, int* label_vector_data, Dtype* loss) {
   int num = nthreads / bottom_dim;
   CUDA_KERNEL_LOOP(index, nthreads) {
     // Set label_vector_data to zeros
@@ -23,7 +23,7 @@ __global__ void SigmoidMultiLabelLossForwardGPU(const int nthreads,
     if (index < num * label_size) {
       int sample_id = index / label_size;
       int label_id = index % label_size;
-      int label_value = label[sample_id * label_size + label_id];
+      int label_value = static_cast<int>(label[sample_id * label_size + label_id]);
       if (label_value > 0) {
 	label_vector_data[sample_id * bottom_dim + label_value - 1] = 1;
       }
@@ -35,7 +35,7 @@ __global__ void SigmoidMultiLabelLossForwardGPU(const int nthreads,
     int c = index % bottom_dim;
     int* cur_label_vector_data = label_vector_data + n * bottom_dim + c;
     const Dtype* cur_prob_data = prob_data + n * bottom_dim + c;
-    loss[n * bottom_dim + c] = - cur_label_vector_data[0] * log(max(cur_prob_data[0], Dtype(kLOG_THRESHOLD))) - (1 - cur_label_vector_data[0]) * log(max(1 - cur_prob_data[0], Dtype(kLOG_THRESHOLD)));
+    loss[n * bottom_dim + c] = - cur_label_vector_data[0] * log(max(cur_prob_data[0], Dtype(kLOG_THRESHOLD))) - negative_scale * (1 - cur_label_vector_data[0]) * log(max(1 - cur_prob_data[0], Dtype(kLOG_THRESHOLD)));
   }
 }
 
@@ -50,7 +50,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& 
 
   Dtype* loss_data = bottom[0]->mutable_gpu_diff();
   SigmoidMultiLabelLossForwardGPU<Dtype><<<CAFFE_GET_BLOCKS(count),
-      CAFFE_CUDA_NUM_THREADS>>>(count, prob_data, label, label_size_, bottom_dim_, label_vector_data, loss_data);
+      CAFFE_CUDA_NUM_THREADS>>>(count, prob_data, label, label_size_, bottom_dim_, negative_scale_, label_vector_data, loss_data);
   Dtype loss;
   caffe_gpu_asum(count, loss_data, &loss);
   // Only launch another CUDA kernel if we actually need the count of valid
@@ -63,13 +63,13 @@ void SigmoidMultiLabelLossLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& 
 
 template <typename Dtype>
 __global__ void SigmoidMultiLabelLossBackwardGPU(const int nthreads, const Dtype* prob,
-          const int* label_vector_data, const int bottom_dim, Dtype* bottom_diff) {
+          const int* label_vector_data, const int bottom_dim, Dtype negative_scale, Dtype* bottom_diff) {
   CUDA_KERNEL_LOOP(index, nthreads) {
     const int n = index / bottom_dim;
     const int c = index % bottom_dim;
     const int label_value = static_cast<int>(label_vector_data[n * bottom_dim + c]);
     const Dtype prob_value = prob[n * bottom_dim + c];
-    bottom_diff[n * bottom_dim + c] = -label_value * (1 - prob_value) + (1 - label_value) * prob_value;
+    bottom_diff[n * bottom_dim + c] = -label_value * (1 - prob_value) + negative_scale * (1 - label_value) * prob_value;
   }
 }
 
@@ -88,7 +88,7 @@ void SigmoidMultiLabelLossLayer<Dtype>::Backward_gpu(const vector<Blob<Dtype>*>&
     const int count = prob_.count();
     // NOLINT_NEXT_LINE(whitespace/operators)
     SigmoidMultiLabelLossBackwardGPU<Dtype><<<CAFFE_GET_BLOCKS(count),
-        CAFFE_CUDA_NUM_THREADS>>>(count, prob_data, label_vector_data, bottom_dim_,  bottom_diff);
+        CAFFE_CUDA_NUM_THREADS>>>(count, prob_data, label_vector_data, bottom_dim_,  negative_scale_, bottom_diff);
 
     const Dtype loss_weight = top[0]->cpu_diff()[0] / num / bottom_dim_;
     caffe_gpu_scal(count, loss_weight , bottom_diff);

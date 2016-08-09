@@ -9,8 +9,9 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 2000
+snapshot: 200
 snapshot_prefix: "models/cvpr17/ILT-exp"
 solver_mode: GPU
 test_compute_loss: true
-device_id: 1
+test_initialization: false
+clip_gradients: 100

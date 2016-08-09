@@ -76,6 +76,7 @@ class SigmoidMultiLabelLossLayer : public LossLayer<Dtype> {
   vector<Blob<Dtype>*> sigmoid_bottom_vec_;
   vector<Blob<Dtype>*> sigmoid_top_vec_;
   Blob<Dtype> prob_;
+  Dtype negative_scale_;
 
   /// Whether to ignore instances with a certain label.
   // bool has_ignore_label_;

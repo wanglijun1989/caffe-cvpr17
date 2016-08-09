@@ -61,6 +61,7 @@ TYPED_TEST_CASE(SigmoidMultiLabelLayerTest, TestDtypesAndDevices);
 TYPED_TEST(SigmoidMultiLabelLayerTest, TestGradient) {
   typedef typename TypeParam::Dtype Dtype;
   LayerParameter layer_param;
+  layer_param.mutable_loss_param()->set_negative_scale(0.1);
   layer_param.add_loss_weight(3);
   SigmoidMultiLabelLossLayer<Dtype> layer(layer_param);
   GradientChecker<Dtype> checker(1e-2, 1e-2, 1701);

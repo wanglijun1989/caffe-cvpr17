@@ -21,7 +21,7 @@ layer {
     batch_size: 32
     backend: LMDB
     multi_label: true
-    label_size: 16
+    label_size: 12
   }
 }
 layer {
@@ -44,7 +44,7 @@ layer {
     batch_size: 32
     backend: LMDB
     multi_label: true
-    label_size: 16
+    label_size: 12
   }
 }
 layer {
@@ -64,6 +64,13 @@ layer {
     num_output: 64
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -89,6 +96,13 @@ layer {
     num_output: 64
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -125,6 +139,13 @@ layer {
     num_output: 128
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -150,6 +171,13 @@ layer {
     num_output: 128
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -186,6 +214,13 @@ layer {
     num_output: 256
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -211,6 +246,13 @@ layer {
     num_output: 256
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -236,6 +278,13 @@ layer {
     num_output: 256
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -272,6 +321,13 @@ layer {
     num_output: 512
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -297,6 +353,13 @@ layer {
     num_output: 512
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -322,6 +385,13 @@ layer {
     num_output: 512
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -358,6 +428,13 @@ layer {
     num_output: 512
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -383,6 +460,13 @@ layer {
     num_output: 512
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -408,6 +492,13 @@ layer {
     num_output: 512
     pad: 1
     kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
   }
 }
 layer {
@@ -435,8 +526,7 @@ layer {
     kernel_size: 3
     group: 2
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "msra"
     }
     bias_filler {
       type: "constant"
@@ -476,11 +566,11 @@ layer {
   bottom: "CAM_pool"
   top: "CAM_pre"
   param {
-    lr_mult: 10
+    lr_mult: 1
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 2
     decay_mult: 0
   }
   inner_product_param {
@@ -500,4 +590,14 @@ layer {
   type: "SigmoidMultiLabelLoss"
   bottom: "CAM_pre"
   bottom: "label"
+  loss_weight: 200
+  loss_param {
+    negative_scale: 0.1
+  }
+  include {
+    phase: TRAIN
+  }
+  include {
+    phase: TEST
+  }
 }

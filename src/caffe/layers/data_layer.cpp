@@ -105,9 +105,9 @@ void DataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       if(multi_label_) {
 	for (int label_id = 0; label_id < label_size_; label_id++) {
 	  if (label_id < datum.multi_label_size()) {
-	    top_label[item_id * label_size_ + label_id] = datum.multi_label(label_id);
+	    top_label[item_id * label_size_ + label_id] = static_cast<Dtype>(datum.multi_label(label_id));
 	  } else {
-	    top_label[item_id * label_size_ + label_id] = 0;
+	    top_label[item_id * label_size_ + label_id] = Dtype(0);
 	  }
 	}
       } else {

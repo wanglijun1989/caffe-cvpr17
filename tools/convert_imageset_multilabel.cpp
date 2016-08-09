@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
       labels.push_back(label);
       infile >> label;
     }
-    lines.push_back(std::make_pair(img_path, label));
+    lines.push_back(std::make_pair(img_path, labels));
     
   }
   LOG(INFO) << "List loading done!";

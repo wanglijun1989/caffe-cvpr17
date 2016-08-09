@@ -144,6 +144,7 @@ bool ReadImageToDatum(const string& filename, const int label,
 bool ReadImageToMultiLabelDatum(const string& filename, const std::vector<int> label,
     const int height, const int width, const bool is_color,
     const std::string & encoding, Datum* datum) {
+  datum->clear_multi_label();
   cv::Mat cv_img = ReadImageToCVMat(filename, height, width, is_color);
   if (cv_img.data) {
     if (encoding.size()) {
@@ -161,9 +162,12 @@ bool ReadImageToMultiLabelDatum(const string& filename, const std::vector<int> l
       return true;
     }
     CVMatToDatum(cv_img, datum);
+    //printf("label vector size: %d\n", (int)label.size());
     for(std::vector<int>::const_iterator it = label.begin(); it != label.end(); it++) {
 	datum->add_multi_label(*it);
-      }
+    //printf("adding a multi_label\n");
+    }
+    //printf("multi_label_size: %d\n", datum->multi_label_size());
     return true;
   } else {
     return false;
