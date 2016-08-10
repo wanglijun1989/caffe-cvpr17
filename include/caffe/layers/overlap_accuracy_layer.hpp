@@ -29,7 +29,7 @@ class OverlapAccuracyLayer : public Layer<Dtype> {
   // If there are two top blobs, then the second blob will contain
   // accuracies per class.
   virtual inline int MinTopBlobs() const { return 1; }
-  virtual inline int MaxTopBlos() const { return 1; }
+  virtual inline int MaxTopBlos() const { return 2; }
 
  protected:
   /**
@@ -78,7 +78,7 @@ class OverlapAccuracyLayer : public Layer<Dtype> {
     }
   }
 
-  Blob<Dtype> intersection_, union_;
+  Blob<Dtype> pre_, recall_;
 };
 
 }  // namespace caffe

@@ -10,8 +10,8 @@ namespace caffe {
 template <typename Dtype>
 void OverlapAccuracyLayer<Dtype>::LayerSetUp(
   const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
-  intersection_.ReshapeLike(*bottom[0]);
-  union_.ReshapeLike(*bottom[0]);
+  pre_.Reshape(bottom[0]->num(), 1, 1, 1);
+  recall_.Reshape(bottom[0]->num(), 1, 1, 1);
 }
 
 template <typename Dtype>
@@ -19,8 +19,11 @@ void OverlapAccuracyLayer<Dtype>::Reshape(
   const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
     vector<int> top_shape(0);  // Accuracy is a scalar; 0 axes.
   top[0]->Reshape(top_shape);
-  intersection_.ReshapeLike(*bottom[0]);
-  union_.ReshapeLike(*bottom[0]);
+  if (top.size() >= 2) {
+    top[1]->Reshape(top_shape);
+  }
+  pre_.Reshape(bottom[0]->num(), 1, 1, 1);
+  recall_.Reshape(bottom[0]->num(), 1, 1, 1);
 }
 //
 //template <typename Dtype>

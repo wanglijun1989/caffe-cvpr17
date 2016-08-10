@@ -590,7 +590,6 @@ layer {
   type: "SigmoidMultiLabelLoss"
   bottom: "CAM_pre"
   bottom: "label"
-  top: "train_loss"
   loss_weight: 200
   loss_param {
     negative_scale: 0.05
@@ -624,7 +623,8 @@ layer {
   type: "OverlapAccuracy"
   bottom: "prob"
   bottom: "label_vector"
-  top: "acc"
+  top: "precision"
+  top: "recall"
   include {
     phase: TEST
   }
