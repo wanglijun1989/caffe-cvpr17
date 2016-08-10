@@ -32,7 +32,7 @@ class SigmoidMultiLabelLossLayer : public LossLayer<Dtype> {
   virtual inline const char* type() const { return "SigmoidMultiLabelLossLayer"; }
   virtual inline int ExactNumTopBlobs() const { return -1; }
   virtual inline int MinTopBlobs() const { return 1; }
-  virtual inline int MaxTopBlobs() const { return 2; }
+  virtual inline int MaxTopBlobs() const { return 3; }
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,
@@ -71,7 +71,7 @@ class SigmoidMultiLabelLossLayer : public LossLayer<Dtype> {
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
   int label_size_, bottom_dim_;
-  Blob<int> label_vector_;
+  Blob<Dtype> label_vector_;
   shared_ptr<Layer<Dtype> > sigmoid_layer_;
   vector<Blob<Dtype>*> sigmoid_bottom_vec_;
   vector<Blob<Dtype>*> sigmoid_top_vec_;

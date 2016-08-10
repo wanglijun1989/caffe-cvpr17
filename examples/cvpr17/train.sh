@@ -3,7 +3,13 @@
 #./build/tools/caffe train -solver=examples/cvpr17/solver.prototxt -gpu=0,1 2>&1 | tee examples/cvpr17/log1.txt 
 
 
-./build/tools/caffe train -solver=examples/cvpr17/solver.prototxt -snapshot=models/cvpr17/ILT_iter_128000.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17/log2.txt 
+#./build/tools/caffe train -solver=examples/cvpr17/solver.prototxt -snapshot=models/cvpr17/ILT_iter_128000.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17/log2.txt 
+## end up with iteration 100000
+
+## negtive scale = 0.05,
+#./build/tools/caffe train -solver=examples/cvpr17/solver.prototxt -snapshot=models/cvpr17/ILT_iter_100000.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17/log3.txt 
+## Add overlap_accuracy layer
+./build/tools/caffe train -solver=examples/cvpr17/solver.prototxt -snapshot=models/cvpr17/ILT_iter_126000.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17/log4.txt 
 
 #./build/tools/caffe train -solver=examples/cvpr17/solver.prototxt -snapshot=models/cvpr17/ILT_iter_2000.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17/log2.txt 
 
