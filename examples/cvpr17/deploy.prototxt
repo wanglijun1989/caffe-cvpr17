@@ -380,27 +380,24 @@ layer {
   top: "conv5_3"
 }
 layer {
-  name: "CAM_conv"
+  name: "conv6"
   type: "Convolution"
   bottom: "conv5_3"
-  top: "CAM_conv"
+  top: "conv6"
   param {
-    lr_mult: 1
+    lr_mult: 10
     decay_mult: 1
   }
   param {
-    lr_mult: 2
+    lr_mult: 20
     decay_mult: 0
   }
   convolution_param {
-    num_output: 1024
-    pad: 2
+    num_output: 512
+    pad: 1
     kernel_size: 3
-    group: 2
-    dilation: 2
     weight_filler {
-      type: "gaussian"
-      std: 0.01
+      type: "msra"
     }
     bias_filler {
       type: "constant"
@@ -409,37 +406,35 @@ layer {
   }
 }
 layer {
-  name: "CAM_relu"
+  name: "relu6"
   type: "ReLU"
-  bottom: "CAM_conv"
-  top: "CAM_conv"
+  bottom: "conv6"
+  top: "conv6"
 }
 layer {
-  name: "CAM_pool"
+  name: "pool6"
   type: "Pooling"
-  bottom: "CAM_conv"
-  top: "CAM_pool"
+  bottom: "conv6"
+  top: "pool6"
   pooling_param {
     pool: AVE
     global_pooling: true
-    #kernel_size: 14
-    #stride: 14
-  }
+    }
 }
 layer {
-  name: "CAM_dropout"
+  name: "drop6"
   type: "Dropout"
-  bottom: "CAM_pool"
-  top: "CAM_pool"
+  bottom: "pool6"
+  top: "pool6"
   dropout_param {
     dropout_ratio: 0.5
   }
 }
 layer {
-  name: "CAM_pre"
+  name: "fc7"
   type: "InnerProduct"
-  bottom: "CAM_pool"
-  top: "CAM_pre"
+  bottom: "pool6"
+  top: "fc7"
   param {
     lr_mult: 10
     decay_mult: 1
@@ -460,9 +455,10 @@ layer {
     }
   }
 }
+
 layer {
   name: "con"
   type: "Sigmoid"
-  bottom: "CAM_pre"
+  bottom: "fc7"
   top: "con"
 }
