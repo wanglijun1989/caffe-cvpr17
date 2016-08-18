@@ -96,3 +96,4 @@ MANIFEST-*
 tags
 cscope*
 examples/cvpr17/log*
+examples/cvpr17/exp-log*
