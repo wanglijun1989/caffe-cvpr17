@@ -16,7 +16,11 @@ void EltwiseLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
       == EltwiseParameter_EltwiseOp_PROD
       && this->layer_param().eltwise_param().coeff_size())) <<
       "Eltwise layer only takes coefficients for summation.";
+  cross_channel_ = this->layer_param().eltwise_param().cross_channel();
   op_ = this->layer_param_.eltwise_param().operation();
+  if (cross_channel_) {
+    CHECK(op_ == EltwiseParameter_EltwiseOp_PROD) << "Cross_channel operation is only implemented for eltwise prod.";
+  }
   // Blob-wise coefficients for the elementwise operation.
   coeffs_ = vector<Dtype>(bottom.size(), 1);
   if (this->layer_param().eltwise_param().coeff_size()) {
@@ -30,8 +34,16 @@ void EltwiseLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
 template <typename Dtype>
 void EltwiseLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
       const vector<Blob<Dtype>*>& top) {
-  for (int i = 1; i < bottom.size(); ++i) {
-    CHECK(bottom[i]->shape() == bottom[0]->shape());
+  if (cross_channel_ ) {
+    for (int i = 1; i < bottom.size(); ++i) {
+      vector<int> reference_shape = bottom[0]->shape();
+      reference_shape[1] = 1;
+      CHECK(bottom[i]->shape() == reference_shape);
+    }
+  } else {
+    for (int i = 1; i < bottom.size(); ++i) {
+      CHECK(bottom[i]->shape() == bottom[0]->shape());
+    }
   }
   top[0]->ReshapeLike(*bottom[0]);
   // If max operation, we will initialize the vector index part.
@@ -44,6 +56,9 @@ void EltwiseLayer<Dtype>::Reshape(const vector<Blob<Dtype>*>& bottom,
 template <typename Dtype>
 void EltwiseLayer<Dtype>::Forward_cpu(
     const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
+  if (cross_channel_) {
+    NOT_IMPLEMENTED;
+  }
   int* mask = NULL;
   const Dtype* bottom_data_a = NULL;
   const Dtype* bottom_data_b = NULL;

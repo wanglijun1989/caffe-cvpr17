@@ -705,6 +705,7 @@ message EltwiseParameter {
   // Whether to use an asymptotically slower (for >2 inputs) but stabler method
   // of computing the gradient for the PROD operation. (No effect for SUM op.)
   optional bool stable_prod_grad = 3 [default = true];
+  optional bool cross_channel = 4 [default = false]; 
 }
 
 // Message that stores parameters used by ELULayer

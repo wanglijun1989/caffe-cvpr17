@@ -1,7 +1,7 @@
 net: "examples/cvpr17/train_val.prototxt"
 test_iter: 577
 test_interval: 2000
-base_lr: 0.001
+base_lr: 0.00001
 lr_policy: "step"
 gamma: 0.1
 stepsize: 188000 # 200000
@@ -10,7 +10,7 @@ max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 2000
-snapshot_prefix: "models/cvpr17-finetune/ILT-from-188000"
+snapshot_prefix: "models/cvpr17-gen-map/ILT-from-188000"
 solver_mode: GPU
 test_compute_loss: true
 test_initialization: false

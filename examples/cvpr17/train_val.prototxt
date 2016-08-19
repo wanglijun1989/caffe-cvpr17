@@ -540,9 +540,53 @@ layer {
   top: "conv6"
 }
 layer {
+  name: "gen_map"
+  type: "Convolution"
+  bottom: "conv5_3"
+  top: "gen_map"
+  param {
+    lr_mult: 1000
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2000
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 1
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "gen_map_norm"
+  type: "Sigmoid"
+  bottom: "gen_map"
+  top: "gen_map_norm"
+}
+layer {
+  name: "weighted_conv6"
+  type: "Eltwise"
+  bottom: "conv6"
+  bottom: "gen_map_norm"
+  top: "masked_conv6"
+  eltwise_param {
+    operation: PROD
+    cross_channel: true
+  }
+}
+
+layer {
   name: "pool6"
   type: "Pooling"
-  bottom: "conv6"
+  bottom: "masked_conv6"
   top: "pool6"
   pooling_param {
     pool: AVE

@@ -79,10 +79,10 @@ void GradientChecker<Dtype>::CheckGradientSingle(Layer<Dtype>* layer,
     CHECK_EQ(0, layer->blobs().size());
     CHECK_LE(0, top_id);
     CHECK_LE(0, top_data_id);
-    const int top_count = top[top_id]->count();
-    for (int blob_id = 0; blob_id < bottom.size(); ++blob_id) {
-      CHECK_EQ(top_count, bottom[blob_id]->count());
-    }
+   // const int top_count = top[top_id]->count();
+   // for (int blob_id = 0; blob_id < bottom.size(); ++blob_id) {
+   //   CHECK_EQ(top_count, bottom[blob_id]->count());
+   // }
   }
   // First, figure out what blobs we need to check against, and zero init
   // parameter blobs.

@@ -16,7 +16,6 @@ namespace caffe {
 template <typename TypeParam>
 class EltwiseLayerTest : public MultiDeviceTest<TypeParam> {
   typedef typename TypeParam::Dtype Dtype;
-
  protected:
   EltwiseLayerTest()
       : blob_bottom_a_(new Blob<Dtype>(2, 3, 4, 5)),
