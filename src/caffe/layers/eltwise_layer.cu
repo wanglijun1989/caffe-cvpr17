@@ -64,11 +64,13 @@ void EltwiseLayer<Dtype>::Forward_gpu(const vector<Blob<Dtype>*>& bottom,
     }
     //for (int n = 0; n < bottom[0]->num(); n++) {
     //  for (int c = 0; c < bottom[0]->channels(); c++) {
-    //    const Dtype* cur_b1 = bottom[0]->cpu_data() + bottom[0]->offset(n, c);
-    //    const Dtype* cur_b2 = bottom[1]->cpu_data() + bottom[1]->offset(n);
+    //    const Dtype* cur_b0 = bottom[0]->cpu_data() + bottom[0]->offset(n, c);
+    //    const Dtype* cur_b1 = bottom[1]->cpu_data() + bottom[1]->offset(n);
+    //    const Dtype* cur_b2 = bottom[2]->cpu_data() + bottom[2]->offset(n);
     //    const Dtype* cur_top = top[0]->cpu_data() + top[0]->offset(n, c);
+    //    printf("n = %d, c = %d\n", n, c);
     //    for (int i = 0; i < bottom[0]->count(2); i++) {
-    //      printf("bottom1: %f, bottom2: %f\n top: %f \n", float(cur_b1[i]), float(cur_b2[i]), float(cur_top[i]));
+    //      printf("bottom0: %f, bottom1: %f, bottom2: %f\n top: %f \n", float(cur_b0[i]), float(cur_b1[i]), float(cur_b2[i]), float(cur_top[i]));
     //    }
     //  }
     //}

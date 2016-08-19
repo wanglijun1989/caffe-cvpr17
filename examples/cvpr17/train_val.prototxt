@@ -548,10 +548,6 @@ layer {
     lr_mult: 1000
     decay_mult: 1
   }
-  param {
-    lr_mult: 2000
-    decay_mult: 0
-  }
   convolution_param {
     num_output: 1
     pad: 1
@@ -559,23 +555,41 @@ layer {
     weight_filler {
       type: "msra"
     }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
+    bias_term: false
+    #bias_filler {
+    #  type: "constant"
+    #  value: 0
+    #}
   }
 }
 layer {
   name: "gen_map_norm"
-  type: "Sigmoid"
+  type: "MVN"
   bottom: "gen_map"
   top: "gen_map_norm"
 }
 layer {
+  name: "gen_map_sigmoid"
+  type: "Sigmoid"
+  bottom: "gen_map_norm"
+  top: "gen_map_sigmoid"
+}
+layer {
+  name: "output_decay"
+  type: "OutputDecay"
+  bottom: "gen_map_sigmoid"
+  top: "gen_map_sigmoid"
+  output_decay_param {
+    regularization_type: "L1"
+    output_decay: 0.005
+  }
+}
+
+layer {
   name: "weighted_conv6"
   type: "Eltwise"
   bottom: "conv6"
-  bottom: "gen_map_norm"
+  bottom: "gen_map_sigmoid"
   top: "masked_conv6"
   eltwise_param {
     operation: PROD

@@ -394,8 +394,9 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
     weight_filler {
       type: "msra"
     }
@@ -411,10 +412,58 @@ layer {
   bottom: "conv6"
   top: "conv6"
 }
+
+layer {
+  name: "gen_map"
+  type: "Convolution"
+  bottom: "conv5_3"
+  top: "gen_map"
+  param {
+    lr_mult: 1000
+    decay_mult: 1
+  }
+  
+  convolution_param {
+    num_output: 1
+    pad: 2
+    kernel_size: 3
+    dilation: 2
+    weight_filler {
+      type: "msra"
+    }
+    bias_term: false
+    
+  }
+}
+layer {
+  name: "gen_map_norm"
+  type: "MVN"
+  bottom: "gen_map"
+  top: "gen_map_norm"
+}
+
+layer {
+  name: "gen_map_sigmoid"
+  type: "Sigmoid"
+  bottom: "gen_map_norm"
+  top: "gen_map_sigmoid"
+}
+
+layer {
+  name: "weighted_conv6"
+  type: "Eltwise"
+  bottom: "conv6"
+  bottom: "gen_map_sigmoid"
+  top: "masked_conv6"
+  eltwise_param {
+    operation: PROD
+    cross_channel: true
+  }
+}
 layer {
   name: "pool6"
   type: "Pooling"
-  bottom: "conv6"
+  bottom: "masked_conv6"
   top: "pool6"
   pooling_param {
     pool: AVE

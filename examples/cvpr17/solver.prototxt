@@ -9,7 +9,7 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 2000
+snapshot: 100
 snapshot_prefix: "models/cvpr17-gen-map/ILT-from-188000"
 solver_mode: GPU
 test_compute_loss: true

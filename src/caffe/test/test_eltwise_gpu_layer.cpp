@@ -18,9 +18,9 @@ class EltwiseLayerTest : public MultiDeviceTest<TypeParam> {
   typedef typename TypeParam::Dtype Dtype;
  protected:
   EltwiseLayerTest()
-      : blob_bottom_a_(new Blob<Dtype>(2, 1, 1, 2)),
-        blob_bottom_d_(new Blob<Dtype>(2, 1, 1, 2)),
-        blob_bottom_e_(new Blob<Dtype>(2, 1, 1, 2)),
+      : blob_bottom_a_(new Blob<Dtype>(3, 3, 2, 2)),
+        blob_bottom_d_(new Blob<Dtype>(3, 1, 2, 2)),
+        blob_bottom_e_(new Blob<Dtype>(3, 1, 2, 2)),
         blob_top_(new Blob<Dtype>()) {
     // fill the values
     Caffe::set_random_seed(1701);
@@ -59,7 +59,7 @@ TYPED_TEST(EltwiseLayerTest, TestStableCrossChannelProdGradient) {
   eltwise_param->set_cross_channel(true);
   EltwiseLayer<Dtype> layer(layer_param);
   GradientChecker<Dtype> checker(1e-2, 1e-3);
-  checker.CheckGradientEltwise(&layer, this->blob_bottom_vec_,
+  checker.CheckGradientExhaustive(&layer, this->blob_bottom_vec_,
       this->blob_top_vec_);
 }
 
@@ -71,7 +71,7 @@ TYPED_TEST(EltwiseLayerTest, TestUnstableStableCrossChannelProdGradient) {
   eltwise_param->set_cross_channel(true);
   EltwiseLayer<Dtype> layer(layer_param);
   GradientChecker<Dtype> checker(1e-2, 1e-3);
-  checker.CheckGradientEltwise(&layer, this->blob_bottom_vec_,
+  checker.CheckGradientExhaustive(&layer, this->blob_bottom_vec_,
       this->blob_top_vec_);
 }
 
