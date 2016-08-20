@@ -470,15 +470,15 @@ layer {
     global_pooling: true
     }
 }
-layer {
-  name: "drop6"
-  type: "Dropout"
-  bottom: "pool6"
-  top: "pool6"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
+#layer {
+#  name: "drop6"
+#  type: "Dropout"
+#  bottom: "pool6"
+#  top: "pool6"
+#  dropout_param {
+#    dropout_ratio: 0.5
+#  }
+#}
 layer {
   name: "fc7"
   type: "InnerProduct"

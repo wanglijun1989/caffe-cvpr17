@@ -11,7 +11,7 @@ namespace caffe {
 
 
   template <typename Dtype>
-    __global__ void SmoothPoolForward(const int nthreads, const Dtype* bottom_data, const int num, const int channels, const int dim, int* index_data, Dtype* value_data, const bool unique_smooth, const bool has_smooth_blobs, const Dtype z, const Dtype* smooth_data, Dtype* weight, Dtype* w_norm_data, Dtype* top_data) {
+    __global__ void SmoothPoolForward(const int nthreads, const Dtype* bottom_data, const int num, const int channels, const int dim, int* index_data, Dtype* value_data, const bool unique_smooth, const bool has_smooth_blobs, const Dtype z, const Dtype dummy_max_value, const Dtype* smooth_data, Dtype* weight, Dtype* w_norm_data, Dtype* top_data) {
       CUDA_KERNEL_LOOP(index, nthreads) {
 	const int n = index / channels;
 	const int c = index % channels;
@@ -39,12 +39,20 @@ namespace caffe {
 	    mu = smooth_data[index];
 	  }
 	}
-
+	
+	Dtype max_value = Dtype(-FLT_MAX);
 	for (int i = 0; i < dim; i++) {
 	  v_tmp[i] = Dtype(1) / (mu + Dtype(FLT_MIN)) * cur_bottom[i];
+	  if (v_tmp[i] > max_value) {
+	    max_value = v_tmp[i];
+	  }
 	  U[i] = i;
 	}
 	double s = 0, ds = 0, ro = 0, dro = 0;
+	if (dummy_max_value > 0 && dummy_max_value > max_value) {
+	  s = dummy_max_value;
+	  ro = 1;
+	}
 	int n_U, n_G, n_L; 
 	n_U = dim;
 	while (n_U > Dtype(0)) {
@@ -105,7 +113,7 @@ namespace caffe {
       Blob<Dtype> value(num_, channels_, height_, width_);
       Dtype* value_data = value.mutable_gpu_data();
       SmoothPoolForward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, bottom_data, num_, channels_, dim_, 
-	  index_data, value_data, unique_smooth_, has_smooth_blobs_, z_, smooth_data, weight_data, w_norm_data, top_data);
+	  index_data, value_data, unique_smooth_, has_smooth_blobs_, z_, max_value_, smooth_data, weight_data, w_norm_data, top_data);
       CUDA_POST_KERNEL_CHECK;
     }
     

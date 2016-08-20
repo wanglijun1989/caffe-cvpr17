@@ -562,7 +562,7 @@ message SmoothPoolingParameter {
   optional bool unique_smooth = 4 [default = true];
   optional FillerParameter smooth_filler = 2;
   optional float z = 3 [default = 1.0];
-    // smooth is larger, pooling is more similar to average pooling
+  optional float max_value = 5 [default = 0.0];
 }
 message OutputDecayParameter {
   optional string regularization_type = 1 [default = "L2"];

@@ -7,18 +7,27 @@
 
 namespace caffe {
   template <typename Dtype>
-  void project_simplex(const Dtype* v, int n, Dtype mu, Dtype z, Dtype* w) {
+  void project_simplex(const Dtype* v, const int n, const Dtype mu, const Dtype z, const Dtype dummy_max_value, Dtype* w) {
     double theta, w_tmp;
     int *U, *G, *L;
     U = new int [n];
     G = new int [n];
     L = new int [n];
     Dtype* v_tmp = new Dtype[n];
+    Dtype max_value = Dtype(-FLT_MAX);
     for (int i = 0; i < n; i++) {
       v_tmp[i] = Dtype(1)/(mu + Dtype(FLT_MIN) )* v[i];
+      if (v_tmp[i] > max_value) {
+	max_value = v_tmp[i];
+      }
       U[i] = i;
     }
     double s = 0, ds = 0, ro = 0, dro = 0;
+    if (dummy_max_value > 0 && dummy_max_value > max_value) {
+      s = dummy_max_value;
+      ro = 1;
+    }
+
     int n_U, n_G, n_L; 
     n_U = n;
     while (n_U > Dtype(0)) {
@@ -58,16 +67,17 @@ namespace caffe {
     } 
     //delete [] v_tmp;
   }
-template
-void project_simplex<float>(const float* v, int n, float mu, float z, float* w);
-template 
-void project_simplex<double>(const double* v, int n, double mu, double z, double* w);
+  template
+  void project_simplex<float>(const float* v, const int n, const float mu, const float z, const float dummy_max_value, float* w);
+  template 
+  void project_simplex<double>(const double* v, const int n, const double mu, const double z, const double dummy_max_value, double* w);
 
   template <typename Dtype>
   void SmoothPoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
     LayerParameter param = this->layer_param_;
     SmoothPoolingParameter pool_param = param.smooth_pooling_param();
     z_ = pool_param.z();
+    max_value_ = pool_param.max_value();
     unique_smooth_ = pool_param.unique_smooth(); 
     has_smooth_blobs_ = pool_param.has_smooth_blobs();
     num_ = bottom[0]->num();
@@ -143,7 +153,7 @@ void project_simplex<double>(const double* v, int n, double mu, double z, double
         } else {
           cur_smooth = unique_smooth_ ? smooth_data[n] : smooth_data[n * channels_ + c];
         }
-        project_simplex(cur_bottom, dim_, cur_smooth, z_, cur_weight);
+        project_simplex(cur_bottom, dim_, cur_smooth, z_, max_value_, cur_weight);
 	cur_w_norm[0] = caffe_cpu_dot(dim_, cur_weight, cur_weight);
         cur_top[0] = caffe_cpu_dot(dim_, cur_bottom, cur_weight);
 	cur_top[0] -= Dtype(0.5) * cur_smooth * cur_w_norm[0];

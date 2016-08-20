@@ -545,7 +545,7 @@ layer {
   bottom: "conv5_3"
   top: "gen_map"
   param {
-    lr_mult: 1000
+    lr_mult: 10
     decay_mult: 1
   }
   convolution_param {
@@ -581,7 +581,7 @@ layer {
   top: "gen_map_sigmoid"
   output_decay_param {
     regularization_type: "L1"
-    output_decay: 0.005
+    output_decay: 0.0001
   }
 }
 
@@ -608,15 +608,15 @@ layer {
     stride: 14
   }
 }
-layer {
-  name: "drop6"
-  type: "Dropout"
-  bottom: "pool6"
-  top: "pool6"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
+#layer {
+#  name: "drop6"
+#  type: "Dropout"
+#  bottom: "pool6"
+#  top: "pool6"
+#  dropout_param {
+#    dropout_ratio: 0.5
+#  }
+#}
 layer {
   name: "fc7"
   type: "InnerProduct"

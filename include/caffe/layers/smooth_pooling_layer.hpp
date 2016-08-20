@@ -47,6 +47,7 @@ class SmoothPoolingLayer : public Layer<Dtype> {
   int height_, width_;
   int dim_;
   Dtype z_;
+  Dtype max_value_;
   Blob<Dtype> weight_;
   Blob<Dtype> w_norm_;
   Blob<Dtype>*  smooth_;
