@@ -460,15 +460,35 @@ layer {
     cross_channel: true
   }
 }
+#layer {
+#  name: "pool6"
+#  type: "Pooling"
+#  bottom: "masked_conv6"
+#  top: "pool6"
+#  pooling_param {
+#    pool: AVE
+#    global_pooling: true
+#    }
+#}
 layer {
-  name: "pool6"
-  type: "Pooling"
+  name: "pool6-smooth"
+  type: "SmoothPooling"
   bottom: "masked_conv6"
   top: "pool6"
-  pooling_param {
-    pool: AVE
-    global_pooling: true
+  top: "weight"
+  param {
+    lr_mult: 10
+    decay_mult: 0
+  }
+  smooth_pooling_param {
+    has_smooth_blobs: true
+    unique_smooth: false
+    max_value: 0
+    smooth_filler {
+      type: "constant"
+      value: 100
     }
+  }
 }
 #layer {
 #  name: "drop6"

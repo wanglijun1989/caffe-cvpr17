@@ -28,30 +28,35 @@ namespace caffe {
 	Dtype mu;
 	if (has_smooth_blobs) {
 	  if (unique_smooth) {
-	    mu = smooth_data[0];
+	    mu = max(smooth_data[0], Dtype(0.01));
 	  } else {
-	    mu = smooth_data[c];
+	    mu = max(smooth_data[c], Dtype(0.01));
 	  }
 	} else {
 	  if (unique_smooth) {
-	    mu = smooth_data[n];
+	    mu = max(smooth_data[n], Dtype(0.01));
 	  } else {
-	    mu = smooth_data[index];
+	    mu = max(smooth_data[index], Dtype(0.01));
 	  }
 	}
 	
 	Dtype max_value = Dtype(-FLT_MAX);
+	Dtype dummy_w;
 	for (int i = 0; i < dim; i++) {
-	  v_tmp[i] = Dtype(1) / (mu + Dtype(FLT_MIN)) * cur_bottom[i];
+	  v_tmp[i] = cur_bottom[i] / (mu + Dtype(FLT_MIN)) ;
 	  if (v_tmp[i] > max_value) {
 	    max_value = v_tmp[i];
 	  }
 	  U[i] = i;
 	}
 	double s = 0, ds = 0, ro = 0, dro = 0;
-	if (dummy_max_value > 0 && dummy_max_value > max_value) {
-	  s = dummy_max_value;
+	Dtype dummy_max_tmp = dummy_max_value / (mu + Dtype(FLT_MIN));
+	if (dummy_max_tmp > 0 && dummy_max_tmp > max_value) {
+	  s = dummy_max_tmp;
 	  ro = 1;
+	  dummy_w = Dtype(1);
+	} else {
+	  dummy_w = Dtype(0);
 	}
 	int n_U, n_G, n_L; 
 	n_U = dim;
@@ -84,8 +89,15 @@ namespace caffe {
 	}
 	theta = (s-double(z)) / (ro + DBL_MIN);
 
-	o[0] = Dtype(0);
-	w_norm[0] = 0;
+        if (dummy_w > Dtype(0)) {
+	  dummy_w = double(dummy_max_tmp) - theta;
+	  dummy_w = dummy_w > 0 ? dummy_w : Dtype(0);
+	  o[0] = dummy_w * dummy_max_value;
+	  w_norm[0] = dummy_w * dummy_w;
+	} else {
+	  o[0] = Dtype(0);
+	  w_norm[0] = 0;
+	}
 	for (int i = 0; i < dim; i++) {
 	  w_tmp = double(v_tmp[i]) - theta;
 	  w_tmp = w_tmp > 0 ? w_tmp : double(0);
@@ -93,6 +105,7 @@ namespace caffe {
 	  w_norm[0] += w[i] * w[i];
 	  o[0] += cur_bottom[i] * Dtype(w[i]);
 	}
+
 	w_norm[0] *= -Dtype(0.5);
 	o[0] += mu * w_norm[0];
       }
@@ -114,6 +127,9 @@ namespace caffe {
       Dtype* value_data = value.mutable_gpu_data();
       SmoothPoolForward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, bottom_data, num_, channels_, dim_, 
 	  index_data, value_data, unique_smooth_, has_smooth_blobs_, z_, max_value_, smooth_data, weight_data, w_norm_data, top_data);
+      if (top.size() == 2) {
+	top[1]->ShareData(weight_);
+      }
       CUDA_POST_KERNEL_CHECK;
     }
     

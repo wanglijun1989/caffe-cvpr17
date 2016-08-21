@@ -88,6 +88,21 @@ TYPED_TEST(SmoothPoolingLayerTest, TestGradientHasSmooth) {
       this->blob_top_vec_);
 }
 
+TYPED_TEST(SmoothPoolingLayerTest, TestGradientHasSmoothDummyMaxValue) {
+  typedef typename TypeParam::Dtype Dtype;
+  LayerParameter layer_param;
+  SmoothPoolingParameter* pool_param = layer_param.mutable_smooth_pooling_param();
+  pool_param->set_has_smooth_blobs(true);
+  pool_param->set_unique_smooth(false);
+  pool_param->mutable_smooth_filler()->set_value(10);
+  pool_param->set_max_value(10);
+  SmoothPoolingLayer<Dtype> layer(layer_param);
+  layer.LayerSetUp(this->blob_bottom_vec_, this->blob_top_vec_);
+  GradientChecker<Dtype> checker(1e-2, 1e-3);
+  checker.CheckGradientExhaustive(&layer, this->blob_bottom_vec_,
+      this->blob_top_vec_);
+}
+
 TYPED_TEST(SmoothPoolingLayerTest, TestGradientUnique) {
   typedef typename TypeParam::Dtype Dtype;
   LayerParameter layer_param;

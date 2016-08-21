@@ -7,7 +7,7 @@
 
 namespace caffe {
   template <typename Dtype>
-  void project_simplex(const Dtype* v, const int n, const Dtype mu, const Dtype z, const Dtype dummy_max_value, Dtype* w) {
+  void project_simplex(const Dtype* v, const int n, const Dtype mu, const Dtype z, const Dtype dummy_max_value, Dtype* w, Dtype* dummy_w) {
     double theta, w_tmp;
     int *U, *G, *L;
     U = new int [n];
@@ -16,16 +16,21 @@ namespace caffe {
     Dtype* v_tmp = new Dtype[n];
     Dtype max_value = Dtype(-FLT_MAX);
     for (int i = 0; i < n; i++) {
-      v_tmp[i] = Dtype(1)/(mu + Dtype(FLT_MIN) )* v[i];
+      v_tmp[i] = v[i] / (mu + Dtype(FLT_MIN) );
       if (v_tmp[i] > max_value) {
 	max_value = v_tmp[i];
       }
       U[i] = i;
     }
     double s = 0, ds = 0, ro = 0, dro = 0;
-    if (dummy_max_value > 0 && dummy_max_value > max_value) {
-      s = dummy_max_value;
+    Dtype dummy_max_tmp = dummy_max_value / (mu + Dtype(FLT_MIN));
+
+    if (dummy_max_tmp > 0 && dummy_max_tmp > max_value) {
+      s = dummy_max_tmp;
       ro = 1;
+      dummy_w[0] = Dtype(1);
+    } else {
+      dummy_w[0] = Dtype(0);
     }
 
     int n_U, n_G, n_L; 
@@ -65,12 +70,16 @@ namespace caffe {
       w_tmp = w_tmp > 0 ? w_tmp : double(0);
       w[i] = Dtype(w_tmp);
     } 
+    if (dummy_w[0] > 0) {
+      dummy_w[0] = double(dummy_max_tmp) - theta;
+      dummy_w[0] = dummy_w[0] > 0 ? dummy_w[0] : Dtype(0);
+    }
     //delete [] v_tmp;
   }
   template
-  void project_simplex<float>(const float* v, const int n, const float mu, const float z, const float dummy_max_value, float* w);
+  void project_simplex<float>(const float* v, const int n, const float mu, const float z, const float dummy_max_value, float* w, float* dummy_w);
   template 
-  void project_simplex<double>(const double* v, const int n, const double mu, const double z, const double dummy_max_value, double* w);
+  void project_simplex<double>(const double* v, const int n, const double mu, const double z, const double dummy_max_value, double* w, double* dummy_w);
 
   template <typename Dtype>
   void SmoothPoolingLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) {
@@ -128,6 +137,10 @@ namespace caffe {
       smooth_ = bottom[1];
     }
     top[0]->Reshape(num_, channels_, 1, 1);
+    if (top.size() == 2) {
+    // softmax output
+    top[1]->ReshapeLike(weight_);
+  }
   }
 
   template <typename Dtype>
@@ -139,6 +152,8 @@ namespace caffe {
 
     Dtype* w_norm_data = w_norm_.mutable_cpu_data();
     const Dtype* smooth_data = smooth_->cpu_data();
+    Blob<Dtype> dummy_w(1,1,1,1);
+    Dtype* dummy_w_data = dummy_w.mutable_cpu_data();
     // First compute weight_ for each num and channel
     // Second weighted average for each channel
     for (int n = 0; n < num_; n++) {
@@ -153,11 +168,17 @@ namespace caffe {
         } else {
           cur_smooth = unique_smooth_ ? smooth_data[n] : smooth_data[n * channels_ + c];
         }
-        project_simplex(cur_bottom, dim_, cur_smooth, z_, max_value_, cur_weight);
+	cur_smooth = std::max(cur_smooth, Dtype(0.01));
+        project_simplex(cur_bottom, dim_, cur_smooth, z_, max_value_, cur_weight, dummy_w_data);
 	cur_w_norm[0] = caffe_cpu_dot(dim_, cur_weight, cur_weight);
+	cur_w_norm[0] += dummy_w_data[0] * dummy_w_data[0];
         cur_top[0] = caffe_cpu_dot(dim_, cur_bottom, cur_weight);
+	cur_top[0] += max_value_* dummy_w_data[0];
 	cur_top[0] -= Dtype(0.5) * cur_smooth * cur_w_norm[0];
       }
+    }
+    if (top.size() == 2) {
+      top[1]->ShareData(weight_);
     }
   }
 

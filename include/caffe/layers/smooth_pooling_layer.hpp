@@ -29,7 +29,7 @@ class SmoothPoolingLayer : public Layer<Dtype> {
   virtual inline const char* type() const { return "SmoothPooling"; }
   virtual inline int MinTopBlobs() const { return 1; }
   
-  virtual inline int MaxTopBlobs() const { return 1;}
+  virtual inline int MaxTopBlobs() const { return 2;}
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,

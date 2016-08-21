@@ -545,7 +545,7 @@ layer {
   bottom: "conv5_3"
   top: "gen_map"
   param {
-    lr_mult: 10
+    lr_mult: 10000
     decay_mult: 1
   }
   convolution_param {
@@ -581,7 +581,7 @@ layer {
   top: "gen_map_sigmoid"
   output_decay_param {
     regularization_type: "L1"
-    output_decay: 0.0001
+    output_decay: 0.001
   }
 }
 
@@ -598,14 +598,22 @@ layer {
 }
 
 layer {
-  name: "pool6"
-  type: "Pooling"
+  name: "pool6-smooth"
+  type: "SmoothPooling"
   bottom: "masked_conv6"
   top: "pool6"
-  pooling_param {
-    pool: AVE
-    kernel_size: 14
-    stride: 14
+  param {
+    lr_mult: 1e5
+    decay_mult: 0
+  }
+  smooth_pooling_param {
+    has_smooth_blobs: true
+    unique_smooth: false
+    max_value: 0
+    smooth_filler {
+      type: "constant"
+      value: 10
+    }
   }
 }
 #layer {
