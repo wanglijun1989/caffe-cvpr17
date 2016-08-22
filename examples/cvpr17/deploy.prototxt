@@ -483,10 +483,11 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 0
+    max_value: 12
+    z: 5
     smooth_filler {
       type: "constant"
-      value: 100
+      value: 10
     }
   }
 }
