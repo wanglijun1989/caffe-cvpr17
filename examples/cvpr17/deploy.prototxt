@@ -407,18 +407,18 @@ layer {
     }
   }
 }
+
 layer {
-  name: "sig6"
-  type: "TanH"
+  name: "relu6"
+  type: "ReLU"
   bottom: "conv6"
-  top: "conv6-sig"
+  top: "conv6"
+  relu_param {
+    engine: CAFFE
+    upper_bound: 15
+    #negative_slope: 0.025
+  }
 }
-#layer {
-#  name: "relu6"
-#  type: "ReLU"
-#  bottom: "conv6"
-#  top: "conv6"
-#}
 
 layer {
   name: "gen_map"
@@ -459,7 +459,7 @@ layer {
 layer {
   name: "weighted_conv6"
   type: "Eltwise"
-  bottom: "conv6-sig"
+  bottom: "conv6"
   bottom: "gen_map_sigmoid"
   top: "masked_conv6"
   eltwise_param {
@@ -490,7 +490,7 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 4
+    max_value: 32
     z: 5
     smooth_filler {
       type: "constant"
@@ -508,7 +508,7 @@ layer {
 #  }
 #}
 layer {
-  name: "fc7-pre"
+  name: "fc7"
   type: "InnerProduct"
   bottom: "pool6"
   top: "fc7"
