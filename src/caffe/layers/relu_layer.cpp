@@ -12,9 +12,17 @@ void ReLULayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   Dtype* top_data = top[0]->mutable_cpu_data();
   const int count = bottom[0]->count();
   Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
-  for (int i = 0; i < count; ++i) {
-    top_data[i] = std::max(bottom_data[i], Dtype(0))
-        + negative_slope * std::min(bottom_data[i], Dtype(0));
+  if (!this->layer_param_.relu_param().has_upper_bound()) {
+    for (int i = 0; i < count; ++i) {
+      top_data[i] = std::max(bottom_data[i], Dtype(0))
+	+ negative_slope * std::min(bottom_data[i], Dtype(0));
+    }
+  } else {
+    Dtype upper_bound = this->layer_param_.relu_param().upper_bound();
+    for (int i = 0; i < count; ++i) {
+      top_data[i] = std::max(bottom_data[i], Dtype(0)) + negative_slope * std::min(bottom_data[i], Dtype(0));
+      top_data[i] = std::min(top_data[i], upper_bound);
+    }
   }
 }
 
@@ -28,9 +36,17 @@ void ReLULayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
     Dtype* bottom_diff = bottom[0]->mutable_cpu_diff();
     const int count = bottom[0]->count();
     Dtype negative_slope = this->layer_param_.relu_param().negative_slope();
-    for (int i = 0; i < count; ++i) {
-      bottom_diff[i] = top_diff[i] * ((bottom_data[i] > 0)
-          + negative_slope * (bottom_data[i] <= 0));
+    if (!this->layer_param_.relu_param().has_upper_bound()) {
+      for (int i = 0; i < count; ++i) {
+	bottom_diff[i] = top_diff[i] * ((bottom_data[i] > 0)
+	    + negative_slope * (bottom_data[i] <= 0));
+      }
+    } else {
+      Dtype upper_bound = this->layer_param_.relu_param().upper_bound();
+      for (int i = 0; i < count; ++i) {
+	bottom_diff[i] = top_diff[i] * (Dtype((bottom_data[i] > 0) && (bottom_data[i] < upper_bound))
+	    + negative_slope * Dtype(bottom_data[i] <= 0));
+      }
     }
   }
 }

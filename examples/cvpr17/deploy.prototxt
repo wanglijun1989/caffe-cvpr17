@@ -398,7 +398,8 @@ layer {
     kernel_size: 3
     dilation: 2
     weight_filler {
-      type: "msra"
+      type: "gaussian" #"msra"
+      std: 0.001
     }
     bias_filler {
       type: "constant"
@@ -407,11 +408,17 @@ layer {
   }
 }
 layer {
-  name: "relu6"
-  type: "ReLU"
+  name: "sig6"
+  type: "TanH"
   bottom: "conv6"
-  top: "conv6"
+  top: "conv6-sig"
 }
+#layer {
+#  name: "relu6"
+#  type: "ReLU"
+#  bottom: "conv6"
+#  top: "conv6"
+#}
 
 layer {
   name: "gen_map"
@@ -452,7 +459,7 @@ layer {
 layer {
   name: "weighted_conv6"
   type: "Eltwise"
-  bottom: "conv6"
+  bottom: "conv6-sig"
   bottom: "gen_map_sigmoid"
   top: "masked_conv6"
   eltwise_param {
@@ -483,7 +490,7 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 12
+    max_value: 4
     z: 5
     smooth_filler {
       type: "constant"
@@ -501,7 +508,7 @@ layer {
 #  }
 #}
 layer {
-  name: "fc7"
+  name: "fc7-pre"
   type: "InnerProduct"
   bottom: "pool6"
   top: "fc7"

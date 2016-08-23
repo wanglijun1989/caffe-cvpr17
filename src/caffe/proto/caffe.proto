@@ -1010,6 +1010,7 @@ message ReLUParameter {
     CUDNN = 2;
   }
   optional Engine engine = 2 [default = DEFAULT];
+  optional float upper_bound = 3 [default = 1.0];
 }
 
 message ReshapeParameter {

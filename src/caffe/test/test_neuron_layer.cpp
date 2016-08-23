@@ -259,6 +259,17 @@ TYPED_TEST(NeuronLayerTest, TestReLUGradientWithNegativeSlope) {
   checker.CheckGradientEltwise(&layer, this->blob_bottom_vec_,
       this->blob_top_vec_);
 }
+TYPED_TEST(NeuronLayerTest, TestReLUGradientWithNegativeSlopeUpperBound) {
+  typedef typename TypeParam::Dtype Dtype;
+  LayerParameter layer_param;
+  CHECK(google::protobuf::TextFormat::ParseFromString(
+      "relu_param { negative_slope: 0.01 }", &layer_param));
+  layer_param.mutable_relu_param()->set_upper_bound(0.5);
+  ReLULayer<Dtype> layer(layer_param);
+  GradientChecker<Dtype> checker(1e-3, 1e-3, 1701, 0., 0.01);
+  checker.CheckGradientEltwise(&layer, this->blob_bottom_vec_,
+      this->blob_top_vec_);
+}
 
 TYPED_TEST(NeuronLayerTest, TestELU) {
   typedef typename TypeParam::Dtype Dtype;

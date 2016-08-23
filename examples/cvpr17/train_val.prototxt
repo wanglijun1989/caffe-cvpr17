@@ -513,11 +513,11 @@ layer {
   bottom: "conv5_3"
   top: "conv6"
   param {
-    lr_mult: 100
+    lr_mult: 10000
     decay_mult: 1
   }
   param {
-    lr_mult: 200
+    lr_mult: 20000
     decay_mult: 0
   }
   convolution_param {
@@ -525,7 +525,8 @@ layer {
     pad: 1
     kernel_size: 3
     weight_filler {
-      type: "msra"
+      type: "gaussian" #"msra"
+      std: 0.001
     }
     bias_filler {
       type: "constant"
@@ -534,18 +535,24 @@ layer {
   }
 }
 layer {
-  name: "relu6"
-  type: "ReLU"
+  name: "sig6"
+  type: "TanH"
   bottom: "conv6"
-  top: "conv6"
+  top: "conv6-sig"
 }
+#layer {
+#  name: "relu6"
+#  type: "ReLU"
+#  bottom: "conv6"
+#  top: "conv6"
+#}
 layer {
   name: "gen_map"
   type: "Convolution"
   bottom: "conv5_3"
   top: "gen_map"
   param {
-    lr_mult: 100 #10000
+    lr_mult: 10000 #10000
     decay_mult: 1
   }
   convolution_param {
@@ -588,7 +595,7 @@ layer {
 layer {
   name: "weighted_conv6"
   type: "Eltwise"
-  bottom: "conv6"
+  bottom: "conv6-sig"
   bottom: "gen_map_sigmoid"
   top: "masked_conv6"
   eltwise_param {
@@ -609,8 +616,8 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 12
-    z: 5
+    max_value: 1
+    z: 1
     smooth_filler {
       type: "constant"
       value: 300 #10
@@ -627,7 +634,7 @@ layer {
 #  }
 #}
 layer {
-  name: "fc7"
+  name: "fc7-pre"
   type: "InnerProduct"
   bottom: "pool6"
   top: "fc7"

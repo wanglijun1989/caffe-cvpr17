@@ -95,6 +95,7 @@ TYPED_TEST(SmoothPoolingLayerTest, TestGradientHasSmoothDummyMaxValue) {
   pool_param->set_has_smooth_blobs(true);
   pool_param->set_unique_smooth(false);
   pool_param->mutable_smooth_filler()->set_value(10);
+  pool_param->set_z(5);
   pool_param->set_max_value(10);
   SmoothPoolingLayer<Dtype> layer(layer_param);
   layer.LayerSetUp(this->blob_bottom_vec_, this->blob_top_vec_);
