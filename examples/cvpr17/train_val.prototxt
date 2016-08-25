@@ -502,6 +502,12 @@ layer {
   }
 }
 layer {
+  name: "bn5_3"
+  type: "BatchNorm"
+  bottom: "conv5_3"
+  top: "conv5_3"
+}
+layer {
   name: "relu5_3"
   type: "ReLU"
   bottom: "conv5_3"
@@ -618,11 +624,11 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 64
+    max_value: 0
     z: 5
     smooth_filler {
       type: "constant"
-      value: 300
+      value: 1
     }
   }
 }
@@ -635,6 +641,8 @@ layer {
 #    dropout_ratio: 0.5
 #  }
 #}
+
+
 layer {
   name: "fc7"
   type: "InnerProduct"

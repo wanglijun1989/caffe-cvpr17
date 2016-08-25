@@ -9,8 +9,8 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 2000
-snapshot_prefix: "models/cvpr17-smooth/ILT-from-188000-7"
+snapshot: 1000
+snapshot_prefix: "models/cvpr17-ILT/ILT-"
 solver_mode: GPU
 test_compute_loss: true
 test_initialization: false
