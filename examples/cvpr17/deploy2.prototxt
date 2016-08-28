@@ -585,7 +585,7 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 0
+    max_value: 4
     z: 5
     smooth_filler {
       type: "constant"

@@ -519,11 +519,11 @@ layer {
   bottom: "conv5_3"
   top: "conv6"
   param {
-    lr_mult: 100
+    lr_mult: 10
     decay_mult: 1
   }
   param {
-    lr_mult: 200
+    lr_mult: 20
     decay_mult: 0
   }
   convolution_param {
@@ -560,7 +560,7 @@ layer {
   bottom: "conv5_3"
   top: "gen_map"
   param {
-    lr_mult: 100 #10000
+    lr_mult: 10 #10000
     decay_mult: 1
   }
   convolution_param {
@@ -624,7 +624,7 @@ layer {
   smooth_pooling_param {
     has_smooth_blobs: true
     unique_smooth: false
-    max_value: 0
+    max_value: 4
     z: 5
     smooth_filler {
       type: "constant"
