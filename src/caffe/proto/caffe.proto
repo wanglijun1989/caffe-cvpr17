@@ -457,6 +457,7 @@ message LossParameter {
   // normalization = BATCH_SIZE to be consistent with previous behavior.
   optional bool normalize = 2;
   optional float negative_scale = 4 [default = 1.0]; // For sigmoid_multi_label_loss 
+  optional float beta = 5 [default = 1.0]; // For softmax_with_hard_boostrap_loss
 }
 
 // Messages that store parameters used by individual layer types follow, in
