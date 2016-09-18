@@ -1,52 +1,12 @@
 name: "VGG_ILSVRC_16_layers"
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TRAIN
-  }
 
-# mean pixel / channel-wise mean instead of mean image
-  transform_param {
-    crop_size: 224
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
-    mirror: true
-  }
-  data_param {
-    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_train_lmdb"
-    batch_size: 32
-    backend: LMDB
-    multi_label: true
-    label_size: 12
-  }
-}
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    crop_size: 224
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
-    mirror: false
-  }
-  data_param {
-    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_val_lmdb"
-    batch_size: 32
-    backend: LMDB
-    multi_label: true
-    label_size: 12
-  }
-}
+
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 256
+input_dim: 256 #224
+
 layer {
   name: "conv1_1"
   type: "Convolution"
@@ -408,7 +368,7 @@ layer {
   pooling_param {
     pool: MAX
     kernel_size: 2
-    stride: 2
+    stride: 1
   }
 }
 layer {
@@ -426,11 +386,12 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
     weight_filler {
       type: "msra"
     }
+    dilation: 2
     bias_filler {
       type: "constant"
       value: 0
@@ -458,8 +419,9 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
     weight_filler {
       type: "msra"
     }
@@ -490,8 +452,9 @@ layer {
   }
   convolution_param {
     num_output: 512
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
     weight_filler {
       type: "msra"
     }
@@ -513,46 +476,6 @@ layer {
   bottom: "conv5_3"
   top: "conv5_3"
 }
-layer {
-  name: "conv6"
-  type: "Convolution"
-  bottom: "conv5_3"
-  top: "conv6"
-  param {
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 20
-    decay_mult: 0
-  }
-  convolution_param {
-    num_output: 512
-    pad: 1
-    kernel_size: 3
-    weight_filler {
-      type: "msra"
-      #type: "gaussian" #"msra"
-      #std: 0.001
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-
-layer {
-  name: "relu6"
-  type: "ReLU"
-  bottom: "conv6"
-  top: "conv6"
-  relu_param {
-    engine: CAFFE
-    upper_bound: 15
-    #negative_slope: 0.025
-  }
-}
 
 layer {
   name: "gen_map"
@@ -560,13 +483,14 @@ layer {
   bottom: "conv5_3"
   top: "gen_map"
   param {
-    lr_mult: 10 #10000
+    lr_mult: 100 #10000
     decay_mult: 1
   }
   convolution_param {
     num_output: 1
-    pad: 1
+    pad: 2
     kernel_size: 3
+    dilation: 2
     weight_filler {
       type: "msra"
     }
@@ -588,127 +512,4 @@ layer {
   type: "Sigmoid"
   bottom: "gen_map_norm"
   top: "gen_map_sigmoid"
-}
-layer {
-  name: "output_decay"
-  type: "OutputDecay"
-  bottom: "gen_map_sigmoid"
-  top: "gen_map_sigmoid"
-  output_decay_param {
-    regularization_type: "L1"
-    output_decay: 0.0001
-  }
-}
-
-layer {
-  name: "weighted_conv6"
-  type: "Eltwise"
-  bottom: "conv6"
-  bottom: "gen_map_sigmoid"
-  top: "masked_conv6"
-  eltwise_param {
-    operation: PROD
-    cross_channel: true
-  }
-}
-
-layer {
-  name: "pool6-smooth"
-  type: "SmoothPooling"
-  bottom: "masked_conv6"
-  top: "pool6"
-  param {
-    lr_mult: 1e5
-    decay_mult: 0
-  }
-  smooth_pooling_param {
-    has_smooth_blobs: true
-    unique_smooth: false
-    max_value: 10
-    z: 5
-    smooth_filler {
-      type: "constant"
-      value: 1
-    }
-  }
-}
-#layer {
-#  name: "drop6"
-#  type: "Dropout"
-#  bottom: "pool6"
-#  top: "pool6"
-#  dropout_param {
-#    dropout_ratio: 0.5
-#  }
-#}
-
-
-layer {
-  name: "fc7"
-  type: "InnerProduct"
-  bottom: "pool6"
-  top: "fc7"
-  param {
-    lr_mult: 10
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 20
-    decay_mult: 0
-  }
-  inner_product_param {
-    num_output: 200
-    weight_filler {
-      type: "gaussian"
-      std: 0.01
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-layer {
-  name: "loss"
-  type: "SigmoidMultiLabelLoss"
-  bottom: "fc7"
-  bottom: "label"
-  loss_weight: 200
-  loss_param {
-    negative_scale: 0.01
-  }
-  include {
-    phase: TRAIN
-  }
-}
-
-layer {
-  name: "test-loss"
-  type: "SigmoidMultiLabelLoss"
-  bottom: "fc7"
-  bottom: "label"
-  top: "test_loss"
-  top: "prob"
-  top: "label_vector"
-  loss_weight: 200
-  loss_weight: 0
-  loss_weight: 0
-  loss_param {
-    negative_scale: 0.01
-  }
-  include {
-    phase: TEST
-  }
-}
-
-layer {
-  name: "accuracy"
-  type: "OverlapAccuracy"
-  bottom: "prob"
-  bottom: "label_vector"
-  top: "precision"
-  top: "recall"
-  include {
-    phase: TEST
-  }
 }
