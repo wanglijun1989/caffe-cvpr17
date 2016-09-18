@@ -97,3 +97,8 @@ tags
 cscope*
 examples/cvpr17/log*
 examples/cvpr17/exp-log*
+examples/cvpr17-sal/log*
+examples/cvpr17-sal/image.txt
+examples/cvpr17-sal/image1.txt
+examples/cvpr17-sal/label.txt
+examples/cvpr17-sal/label1.txt
