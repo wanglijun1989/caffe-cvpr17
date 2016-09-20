@@ -823,21 +823,6 @@ layer {
     }
   }
 }
-
-
-layer {
-  name: "loss"
-  type: "SoftmaxWithHardBoostrapLoss"
-  bottom: "upscale4"
-  bottom: "label"
-  loss_param {
-    beta: 0.95
-  }
-  include {
-    phase: TRAIN
-  }
-}
-
 layer {
   name: "loss"
   type: "SoftmaxWithLoss"
@@ -846,7 +831,17 @@ layer {
   softmax_param {
     engine: CAFFE
   }
-  include {
-    phase: TEST
-  }
 }
+
+#layer {
+#  name: "loss"
+#  type: "SoftmaxWithHardBoostrapLoss"
+#  bottom: "upscale4"
+#  bottom: "label"
+#  loss_param {
+#    beta: 0.95
+#  }
+##  include {
+##    phase: TRAIN
+##  }
+#}

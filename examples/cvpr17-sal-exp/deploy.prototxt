@@ -1,88 +1,12 @@
 name: "VGG_ILSVRC_16_layers"
-layer {
-  name: "data"
-  type: "ImageData"
-  top: "data"
-  top: "dum1"
-  image_data_param {
-    source: "examples/cvpr17-sal/image.txt"
-    batch_size: 32
-  }
-  include {
-    phase: TRAIN
-  }
-  transform_param {
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
-  }
-}
-layer {
-  name: "label"
-  type: "ImageData"
-  top: "label"
-  top: "dum2"
-  image_data_param {
-    source: "examples/cvpr17-sal/label.txt"
-    batch_size: 32
-    is_color: false
-  }
-  include {
-    phase: TRAIN
-  }
-}
+
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 256 #224
+input_dim: 256 #224
 
 
-layer {
-  name: "data"
-  type: "ImageData"
-  top: "data"
-  top: "dum1"
-  image_data_param {
-    source: "examples/cvpr17-sal/image_val.txt"
-    batch_size: 40
-  }
-  include {
-    phase: TEST
-  }
-  transform_param {
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
-  }
-}
-layer {
-  name: "label"
-  type: "ImageData"
-  top: "label"
-  top: "dum2"
-  image_data_param {
-    source: "examples/cvpr17-sal/label_val.txt"
-    batch_size: 40
-    is_color: false
-  }
-  include {
-    phase: TEST
-  }
-}
-
-
-#layer {
-#  name: "label_slice"
-#  type: "Slice"
-#  bottom: "label3"
-#  top: "label"
-#  top: "label2"
-#  top: "label0"
-#}
-layer {
-  name: "silence"
-  type: "Silence"
-  bottom: "dum1"
-  bottom: "dum2"
- # bottom: "label2"
- # bottom: "label0"
-}
 
 layer {
   name: "conv1_1"
@@ -823,30 +747,9 @@ layer {
     }
   }
 }
-
-
 layer {
-  name: "loss"
-  type: "SoftmaxWithHardBoostrapLoss"
+  name: "predict"
+  type: "Softmax"
   bottom: "upscale4"
-  bottom: "label"
-  loss_param {
-    beta: 0.95
-  }
-  include {
-    phase: TRAIN
-  }
-}
-
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "upscale4"
-  bottom: "label"
-  softmax_param {
-    engine: CAFFE
-  }
-  include {
-    phase: TEST
-  }
+  top: "predict"
 }
