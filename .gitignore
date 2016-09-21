@@ -112,3 +112,5 @@ examples/cvpr17-sal-exp/label.txt
 examples/cvpr17-sal-exp/label1.txt
 examples/cvpr17-sal-exp/image_val.txt
 examples/cvpr17-sal-exp/label_val.txt
+
+examples/cvpr17-sal2/*.txt
