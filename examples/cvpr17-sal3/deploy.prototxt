@@ -467,6 +467,24 @@ layer {
   top: "conv5_3"
 }
 layer {
+  name: "scale_conv5_3"
+  type: "Scale"
+  bottom: "conv5_3"
+  top: "conv5_3"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+
+layer {
   name: "relu5_3"
   type: "ReLU"
   bottom: "conv5_3"
@@ -498,10 +516,27 @@ layer {
 }
 
 layer {
-  name: "gen_map_bn"
+  name: "bn_gen_map"
   type: "BatchNorm"
   bottom: "gen_map"
   top: "gen_map"
+}
+layer {
+  name: "scale_gem_map"
+  type: "Scale"
+  bottom: "gen_map"
+  top: "gen_map"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
 }
 
 layer {
@@ -512,10 +547,10 @@ layer {
 }
 
 layer {
-  name: "upscale1"
+  name: "upscore1"
   type: "Deconvolution"
   bottom: "gen_map"
-  top: "upscale1"
+  top: "upscore1"
   param {
     lr_mult: 10
     decay_mult: 1
@@ -531,18 +566,36 @@ layer {
     }
   }
 }
+
 layer {
-  name: "upscale1_norm"
+  name: "bn_upscore1"
   type: "BatchNorm"
-  bottom: "upscale1"
-  top: "upscale1"
+  bottom: "upscore1"
+  top: "upscore1"
+}
+layer {
+  name: "scale_upscore1"
+  type: "Scale"
+  bottom: "upscore1"
+  top: "upscore1"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
 }
 
 layer {
-  name: "relu_upscale1"
+  name: "relu_upscore1"
   type: "ReLU"
-  bottom: "upscale1"
-  top: "upscale1"
+  bottom: "upscore1"
+  top: "upscore1"
 }
 
 
@@ -575,12 +628,35 @@ layer {
     }
   }
 }
+
+
+
+
 layer {
-  name: "conv4_score_norm"
+  name: "bn_conv4_score"
   type: "BatchNorm"
   bottom: "conv4_score"
   top: "conv4_score"
 }
+
+layer {
+  name: "scale_conv4_score"
+  type: "Scale"
+  bottom: "conv4_score"
+  top: "conv4_score"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+
 layer {
   name: "relu_conv4_score"
   type: "ReLU"
@@ -591,11 +667,11 @@ layer {
 
 
 layer {
-  name: "fuse_upscale1"
+  name: "fuse_score1"
   type: "Eltwise"
-  bottom: "upscale1"	
+  bottom: "upscore1"	
   bottom: "conv4_score"
-  top: "fuse_upscale1"
+  top: "fuse_score1"
   eltwise_param {
     operation: SUM
   }
@@ -604,10 +680,10 @@ layer {
 
 ## upscale 2
 layer {
-  name: "upscale2"
+  name: "upscore2"
   type: "Deconvolution"
-  bottom: "fuse_upscale1"
-  top: "upscale2"
+  bottom: "fuse_score1"
+  top: "upscore2"
   param {
     lr_mult: 10
     decay_mult: 1
@@ -623,17 +699,37 @@ layer {
     }
   }
 }
+
 layer {
-  name: "upscale2_norm"
+  name: "bn_upscore2"
   type: "BatchNorm"
-  bottom: "upscale2"
-  top: "upscale2"
+  bottom: "upscore2"
+  top: "upscore2"
 }
+
 layer {
-  name: "relu_upscale2"
+  name: "scale_upscore2"
+  type: "Scale"
+  bottom: "upscore2"
+  top: "upscore2"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+
+layer {
+  name: "relu_upscore2"
   type: "ReLU"
-  bottom: "upscale2"
-  top: "upscale2"
+  bottom: "upscore2"
+  top: "upscore2"
 }
 
 
@@ -666,12 +762,33 @@ layer {
     }
   }
 }
+
+
 layer {
-  name: "conv3_score_norm"
+  name: "bn_conv3_score"
   type: "BatchNorm"
   bottom: "conv3_score"
   top: "conv3_score"
 }
+
+layer {
+  name: "scale_conv3_score"
+  type: "Scale"
+  bottom: "conv3_score"
+  top: "conv3_score"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+
 layer {
   name: "relu_conv3_score"
   type: "ReLU"
@@ -681,21 +798,21 @@ layer {
 
 
 layer {
-  name: "fuse_upscale2"
+  name: "fuse_score2"
   type: "Eltwise"
-  bottom: "upscale2"	
+  bottom: "upscore2"	
   bottom: "conv3_score"
-  top: "fuse_upscale2"
+  top: "fuse_score2"
   eltwise_param {
     operation: SUM
   }
 }
 ## upscale 3
 layer {
-  name: "upscale3"
+  name: "upscore3"
   type: "Deconvolution"
-  bottom: "fuse_upscale2"
-  top: "upscale3"
+  bottom: "fuse_score2"
+  top: "upscore3"
   param {
     lr_mult: 10
     decay_mult: 1
@@ -713,17 +830,37 @@ layer {
 }
 
 layer {
-  name: "upscale3_norm"
+  name: "bn_upscale3"
   type: "BatchNorm"
-  bottom: "upscale3"
-  top: "upscale3"
+  bottom: "upscore3"
+  top: "upscore3"
 }
+
 layer {
-  name: "relu_upscale3"
-  type: "ReLU"
-  bottom: "upscale3"
-  top: "upscale3"
+  name: "scale_upscore3"
+  type: "Scale"
+  bottom: "upscore3"
+  top: "upscore3"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
 }
+
+layer {
+  name: "relu_upscore3"
+  type: "ReLU"
+  bottom: "upscore3"
+  top: "upscore3"
+}
+
 
 
 #layer {
@@ -774,10 +911,10 @@ layer {
 #}
 #####3
 layer {
-  name: "upscale4"
+  name: "upscore4"
   type: "Deconvolution"
-  bottom: "upscale3"
-  top: "upscale4"
+  bottom: "upscore3"
+  top: "upscore4"
   param {
     lr_mult: 10
     decay_mult: 1
@@ -801,13 +938,10 @@ layer {
   }
   
 }
-
-
-
 #######################################3
 layer {
   name: "predict"
   type: "Softmax"
-  bottom: "upscale4"
+  bottom: "upscore4"
   top: "predict"
 }
