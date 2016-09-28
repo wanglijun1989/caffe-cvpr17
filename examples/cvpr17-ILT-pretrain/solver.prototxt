@@ -9,7 +9,7 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 1000
+snapshot: 300#1000
 snapshot_prefix: "models/cvpr17-ILT-pretrain/ip-1"
 solver_mode: GPU
 test_compute_loss: true

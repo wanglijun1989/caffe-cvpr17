@@ -6,7 +6,6 @@ input_dim: 1
 input_dim: 3
 input_dim: 224
 input_dim: 224
-
 layer {
   name: "conv1_1"
   type: "Convolution"
@@ -264,6 +263,71 @@ layer {
     stride: 2
   }
 }
+############ pool3 score ###########
+layer {
+  name: "pool3_score"
+  type: "Convolution"
+  bottom: "pool3"
+  top: "pool3_score"
+  param {
+    lr_mult: 100
+    decay_mult: 1
+  }
+  convolution_param {
+    num_output: 1
+    bias_term: false
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "bn_pool3_score"
+  type: "BatchNorm"
+  bottom: "pool3_score"
+  top: "pool3_score"
+}
+layer {
+  name: "scale_pool3_score"
+  type: "Scale"
+  bottom: "pool3_score"
+  top: "pool3_score"
+  param {
+    lr_mult: 100
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 200
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+layer {
+  name: "sigmoid_pool3_score"
+  type: "Sigmoid"
+  bottom: "pool3_score"
+  top: "pool3_score"
+}
+layer {
+  name: "output_decay_pool3_score"
+  type: "OutputDecay"
+  bottom: "pool3_score"
+  top: "pool3_score"
+  output_decay_param {
+    regularization_type: "L1"
+    output_decay: 0.0001
+  }
+}
+
+
 layer {
   name: "conv4_1"
   type: "Convolution"
@@ -297,9 +361,21 @@ layer {
   top: "conv4_1"
 }
 layer {
+  name: "conv4_1_mask"
+  type: "Eltwise"
+  bottom: "conv4_1"
+  bottom: "pool3_score"
+  top: "conv4_1_mask"
+  eltwise_param {
+    operation: PROD
+    cross_channel: true
+  }
+}
+
+layer {
   name: "conv4_2"
   type: "Convolution"
-  bottom: "conv4_1"
+  bottom: "conv4_1_mask"
   top: "conv4_2"
   param {
     lr_mult: 1
@@ -371,6 +447,72 @@ layer {
     stride: 2
   }
 }
+############ pool4 score ###########
+layer {
+  name: "pool4_score"
+  type: "Convolution"
+  bottom: "pool4"
+  top: "pool4_score"
+  param {
+    lr_mult: 100
+    decay_mult: 1
+  }
+  convolution_param {
+    num_output: 1
+    bias_term: false
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "msra"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "bn_pool4_score"
+  type: "BatchNorm"
+  bottom: "pool4_score"
+  top: "pool4_score"
+}
+layer {
+  name: "scale_pool4_score"
+  type: "Scale"
+  bottom: "pool4_score"
+  top: "pool4_score"
+  param {
+    lr_mult: 100
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 200
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
+layer {
+  name: "sigmoid_pool4_score"
+  type: "Sigmoid"
+  bottom: "pool4_score"
+  top: "pool4_score"
+}
+layer {
+  name: "output_decay_pool4_score"
+  type: "OutputDecay"
+  bottom: "pool4_score"
+  top: "pool4_score"
+  output_decay_param {
+    regularization_type: "L1"
+    output_decay: 0.0001
+  }
+}
+
+
+################3
 layer {
   name: "conv5_1"
   type: "Convolution"
@@ -397,6 +539,7 @@ layer {
     }
   }
 }
+
 layer {
   name: "relu5_1"
   type: "ReLU"
@@ -404,9 +547,20 @@ layer {
   top: "conv5_1"
 }
 layer {
+  name: "conv5_1_mask"
+  type: "Eltwise"
+  bottom: "conv5_1"
+  bottom: "pool4_score"
+  top: "conv5_1_mask"
+  eltwise_param {
+    operation: PROD
+    cross_channel: true
+  }
+}
+layer {
   name: "conv5_2"
   type: "Convolution"
-  bottom: "conv5_1"
+  bottom: "conv5_1_mask"
   top: "conv5_2"
   param {
     lr_mult: 1
@@ -462,7 +616,7 @@ layer {
   }
 }
 layer {
-  name: "bn5_3"
+  name: "bn_conv5_3"
   type: "BatchNorm"
   bottom: "conv5_3"
   top: "conv5_3"
@@ -663,7 +817,6 @@ layer {
     }
   }
 }
-
 
 layer {
   name: "con"
