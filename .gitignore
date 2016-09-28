@@ -116,4 +116,5 @@ examples/cvpr17-sal-exp/label_val.txt
 examples/cvpr17-sal2/*.txt
 examples/cvpr17-sal3/*.txt
 examples/cvpr17-sal4/*.txt
+examples/cvpr17-ILT-pretrain/*.txt
 nohup*
