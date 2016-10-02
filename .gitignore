@@ -117,4 +117,7 @@ examples/cvpr17-sal2/*.txt
 examples/cvpr17-sal3/*.txt
 examples/cvpr17-sal4/*.txt
 examples/cvpr17-ILT-pretrain/*.txt
+examples/cvpr17-ILT-pretrain-exp/*.txt
+examples/cvpr17-ILT-pretrain-exp2/*.txt
 nohup*
+log*

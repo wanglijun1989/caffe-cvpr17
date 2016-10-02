@@ -328,6 +328,7 @@ layer {
     }
   }
 }
+
 layer {
   name: "bn_pool3_score"
   type: "BatchNorm"
@@ -340,23 +341,26 @@ layer {
   bottom: "pool3_score"
   top: "pool3_score"
   param {
-    lr_mult: 100
+    lr_mult: 10
     decay_mult: 1
   }
   param {
-    lr_mult: 200
+    lr_mult: 20
     decay_mult: 0
   }
   scale_param {
     bias_term: true
   }
 }
+
+
 layer {
   name: "sigmoid_pool3_score"
   type: "Sigmoid"
   bottom: "pool3_score"
   top: "pool3_score"
 }
+
 layer {
   name: "output_decay_pool3_score"
   type: "OutputDecay"
@@ -364,10 +368,9 @@ layer {
   top: "pool3_score"
   output_decay_param {
     regularization_type: "L1"
-    output_decay: 1e-8
+    output_decay: 1e-6
   }
 }
-
 
 layer {
   name: "conv4_1"
@@ -524,11 +527,11 @@ layer {
   bottom: "pool4_score"
   top: "pool4_score"
   param {
-    lr_mult: 100
+    lr_mult: 10
     decay_mult: 1
   }
   param {
-    lr_mult: 200
+    lr_mult: 20
     decay_mult: 0
   }
   scale_param {
@@ -695,7 +698,7 @@ layer {
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 200
     decay_mult: 0
   }
   convolution_param {

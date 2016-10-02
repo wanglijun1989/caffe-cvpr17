@@ -1,4 +1,4 @@
-net: "examples/cvpr17-ILT-pretrain/train_val.prototxt"
+net: "examples/cvpr17-ILT-pretrain-exp/train_val.prototxt"
 test_iter: 577
 test_interval: 2000
 base_lr: 0.001
@@ -9,8 +9,8 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 1000
-snapshot_prefix: "models/cvpr17-ILT-pretrain/ip-1"
+snapshot: 300
+snapshot_prefix: "models/cvpr17-ILT-pretrain-exp/ip-1"
 solver_mode: GPU
 test_compute_loss: true
 test_initialization: false

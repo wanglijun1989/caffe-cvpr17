@@ -1,12 +1,52 @@
 name: "VGG_ILSVRC_16_layers"
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
 
-
-input: "data"
-input_dim: 1
-input_dim: 3
-input_dim: 224
-input_dim: 224
-
+# mean pixel / channel-wise mean instead of mean image
+  transform_param {
+    crop_size: 224
+    mean_value: 103.939
+    mean_value: 116.779
+    mean_value: 123.68
+    mirror: true
+  }
+  data_param {
+    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_train_lmdb"
+    batch_size: 32
+    backend: LMDB
+    multi_label: true
+    label_size: 12
+  }
+}
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    crop_size: 224
+    mean_value: 103.939
+    mean_value: 116.779
+    mean_value: 123.68
+    mirror: false
+  }
+  data_param {
+    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_val_lmdb"
+    batch_size: 32
+    backend: LMDB
+    multi_label: true
+    label_size: 12
+  }
+}
 layer {
   name: "conv1_1"
   type: "Convolution"
@@ -265,72 +305,109 @@ layer {
   }
 }
 ############ pool3 score ###########
-layer {
-  name: "pool3_score"
-  type: "Convolution"
-  bottom: "pool3"
-  top: "pool3_score"
-  param {
-    lr_mult: 100
-    decay_mult: 1
-  }
-  convolution_param {
-    num_output: 1
-    bias_term: false
-    pad: 1
-    kernel_size: 3
-    weight_filler {
-      type: "msra"
-    }
-    bias_filler {
-      type: "constant"
-      value: 0
-    }
-  }
-}
-
-layer {
-  name: "bn_pool3_score"
-  type: "BatchNorm"
-  bottom: "pool3_score"
-  top: "pool3_score"
-}
-layer {
-  name: "scale_pool3_score"
-  type: "Scale"
-  bottom: "pool3_score"
-  top: "pool3_score"
-  param {
-    lr_mult: 100
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 200
-    decay_mult: 0
-  }
-  scale_param {
-    bias_term: true
-  }
-}
-
-
-layer {
-  name: "sigmoid_pool3_score"
-  type: "Sigmoid"
-  bottom: "pool3_score"
-  top: "pool3_score"
-}
-
-layer {
-  name: "output_decay_pool3_score"
-  type: "OutputDecay"
-  bottom: "pool3_score"
-  top: "pool3_score"
-  output_decay_param {
-    regularization_type: "L1"
-    output_decay: 1e-6
-  }
-}
+#layer {
+#  name: "pool3_score1"
+#  type: "Convolution"
+#  bottom: "pool3"
+#  top: "pool3_score1"
+#  param {
+#    lr_mult: 100
+#    decay_mult: 1
+#  }
+#  convolution_param {
+#    num_output: 64
+#    bias_term: false
+#    pad: 1
+#    kernel_size: 3
+#    weight_filler {
+#      type: "msra"
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
+#
+#layer {
+#  name: "bn_pool3_score1"
+#  type: "BatchNorm"
+#  bottom: "pool3_score1"
+#  top: "pool3_score1"
+#}
+##layer {
+##  name: "scale_pool3_score"
+##  type: "Scale"
+##  bottom: "pool3_score"
+##  top: "pool3_score"
+##  param {
+##    lr_mult: 10
+##    decay_mult: 1
+##  }
+##  param {
+##    lr_mult: 20
+##    decay_mult: 0
+##  }
+##  scale_param {
+##    bias_term: true
+##  }
+##}
+#layer {
+#  name: "relu_pool3_score1"
+#  type: "ReLU"
+#  bottom: "pool3_score1"
+#  top: "pool3_score1"
+#}
+#layer {
+#  name: "pool3_score2"
+#  type: "Convolution"
+#  bottom: "pool3_score1"
+#  top: "pool3_score2"
+#  param {
+#    lr_mult: 100
+#    decay_mult: 1
+#  }
+#  convolution_param {
+#    num_output: 1
+#    bias_term: false
+#    pad: 1
+#    kernel_size: 3
+#    weight_filler {
+#      type: "msra"
+#    }
+#    bias_filler {
+#      type: "constant"
+#      value: 0
+#    }
+#  }
+#}
+#
+#layer {
+#  name: "bn_pool3_score2"
+#  type: "BatchNorm"
+#  bottom: "pool3_score2"
+#  top: "pool3_score2"
+#}
+#
+#
+#
+#layer {
+#  name: "sigmoid_pool3_score2"
+#  type: "Sigmoid"
+#  bottom: "pool3_score2"
+#  top: "pool3_score2"
+#}
+#
+#layer {
+#  name: "output_decay_pool3_score22"
+#  type: "OutputDecay"
+#  bottom: "pool3_score2"
+#  top: "pool3_score2"
+#  output_decay_param {
+#    regularization_type: "L1"
+#    output_decay: 1e-7
+#  }
+#}
 
 layer {
   name: "conv4_1"
@@ -351,9 +428,7 @@ layer {
     kernel_size: 3
     weight_filler {
       type: "msra"
-    }
-    bias_filler {
-      type: "constant"
+    } bias_filler { type: "constant"
       value: 0
     }
   }
@@ -364,22 +439,22 @@ layer {
   bottom: "conv4_1"
   top: "conv4_1"
 }
-layer {
-  name: "conv4_1_mask"
-  type: "Eltwise"
-  bottom: "conv4_1"
-  bottom: "pool3_score"
-  top: "conv4_1_mask"
-  eltwise_param {
-    operation: PROD
-    cross_channel: true
-  }
-}
+#layer {
+#  name: "conv4_1_mask"
+#  type: "Eltwise"
+#  bottom: "conv4_1"
+#  bottom: "pool3_score2"
+#  top: "conv4_1_mask"
+#  eltwise_param {
+#    operation: PROD
+#    cross_channel: true
+#  }
+#}
 
 layer {
   name: "conv4_2"
   type: "Convolution"
-  bottom: "conv4_1_mask"
+  bottom: "conv4_1"
   top: "conv4_2"
   param {
     lr_mult: 1
@@ -481,23 +556,23 @@ layer {
   bottom: "pool4_score"
   top: "pool4_score"
 }
-layer {
-  name: "scale_pool4_score"
-  type: "Scale"
-  bottom: "pool4_score"
-  top: "pool4_score"
-  param {
-    lr_mult: 100
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 200
-    decay_mult: 0
-  }
-  scale_param {
-    bias_term: true
-  }
-}
+#layer {
+#  name: "scale_pool4_score"
+#  type: "Scale"
+#  bottom: "pool4_score"
+#  top: "pool4_score"
+#  param {
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  scale_param {
+#    bias_term: true
+#  }
+#}
 layer {
   name: "sigmoid_pool4_score"
   type: "Sigmoid"
@@ -631,11 +706,11 @@ layer {
   bottom: "conv5_3"
   top: "conv5_3"
   param {
-    lr_mult: 100
+    lr_mult: 10
     decay_mult: 1
   }
   param {
-    lr_mult: 200
+    lr_mult: 20
     decay_mult: 0
   }
   scale_param {
@@ -712,30 +787,30 @@ layer {
     #}
   }
 }
-
+#
 layer {
   name: "bn_conv5_3_score"
   type: "BatchNorm"
   bottom: "conv5_3_score"
   top: "conv5_3_score"
 }
-layer {
-  name: "scale_conv5_3_score"
-  type: "Scale"
-  bottom: "conv5_3_score"
-  top: "conv5_3_score"
-  param {
-    lr_mult: 100
-    decay_mult: 1
-  }
-  param {
-    lr_mult: 200
-    decay_mult: 0
-  }
-  scale_param {
-    bias_term: true
-  }
-}
+#layer {
+#  name: "scale_conv5_3_score"
+#  type: "Scale"
+#  bottom: "conv5_3_score"
+#  top: "conv5_3_score"
+#  param {
+#    lr_mult: 10
+#    decay_mult: 1
+#  }
+#  param {
+#    lr_mult: 20
+#    decay_mult: 0
+#  }
+#  scale_param {
+#    bias_term: true
+#  }
+#}
 layer {
   name: "sigmoid_conv5_3_score"
   type: "Sigmoid"
@@ -749,7 +824,7 @@ layer {
   top: "conv5_3_score"
   output_decay_param {
     regularization_type: "L1"
-    output_decay: 1e-6
+    output_decay: 1e-4
   }
 }
 
@@ -821,10 +896,47 @@ layer {
     }
   }
 }
-#####################3
 layer {
-  name: "con"
-  type: "Sigmoid"
+  name: "loss"
+  type: "SigmoidMultiLabelLoss"
   bottom: "fc7"
-  top: "con"
+  bottom: "label"
+  loss_weight: 200
+  loss_param {
+    negative_scale: 0.01
+  }
+  include {
+    phase: TRAIN
+  }
+}
+
+layer {
+  name: "test-loss"
+  type: "SigmoidMultiLabelLoss"
+  bottom: "fc7"
+  bottom: "label"
+  top: "test_loss"
+  top: "prob"
+  top: "label_vector"
+  loss_weight: 200
+  loss_weight: 0
+  loss_weight: 0
+  loss_param {
+    negative_scale: 0.01
+  }
+  include {
+    phase: TEST
+  }
+}
+
+layer {
+  name: "accuracy"
+  type: "OverlapAccuracy"
+  bottom: "prob"
+  bottom: "label_vector"
+  top: "precision"
+  top: "recall"
+  include {
+    phase: TEST
+  }
 }
