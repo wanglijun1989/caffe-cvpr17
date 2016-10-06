@@ -546,7 +546,7 @@ layer {
   bottom: "conv4_3_score"
   top: "pool4_3_score"
   pooling_param {
-    pool: MAX
+    pool: AVE
     kernel_size: 2
     stride: 2
   }
