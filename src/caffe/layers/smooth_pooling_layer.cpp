@@ -5,6 +5,7 @@
 #include "caffe/layers/smooth_pooling_layer.hpp"
 #include "caffe/util/math_functions.hpp"
 
+
 namespace caffe {
   template <typename Dtype>
   void project_simplex(const Dtype* v, const int n, const Dtype mu, const Dtype z, const Dtype dummy_max_value, Dtype* w, Dtype* dummy_w) {
@@ -253,6 +254,26 @@ void SmoothPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top, co
     }
   }
 
+}
+
+template <typename Dtype> 
+void SmoothPoolingLayer<Dtype>::UpdateSmooth(const Dtype smooth) {
+  if (!has_smooth_blobs_) {
+    return;
+  }
+  LOG(INFO) << "Current smooth: " << smooth;
+  switch (Caffe::mode()) {
+    case Caffe::CPU:
+      caffe_set(smooth_->count(), smooth, smooth_->mutable_cpu_data());
+      break;
+    case Caffe::GPU:
+#ifndef CPU_ONLY
+      caffe_gpu_set(smooth_->count(), smooth, smooth_->mutable_gpu_data());
+#else
+      NO_GPU;
+#endif
+      break;
+  }
 }
 
 

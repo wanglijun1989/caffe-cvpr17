@@ -362,6 +362,16 @@ void SGDSolver<Dtype>::MatCaffeSnapshot(const string& solver_name, const string&
   WriteProtoToBinaryFile(state, solver_name.c_str());
 }
 
+template <typename Dtype>
+void SGDSolver<Dtype>::UpdateSmooth() {
+  CHECK(Caffe::root_solver());
+  Dtype smooth_interval = this->param_.smooth_interval();
+  Dtype smooth_factor = this->param_.smooth_factor();
+  Dtype smooth_init_value = this->param_.smooth_init_value();
+  Dtype current_smooth = this->iter_ / smooth_interval * smooth_factor + smooth_init_value;
+  this->net_->UpdateSmooth(current_smooth);
+}
+
 INSTANTIATE_CLASS(SGDSolver);
 REGISTER_SOLVER_CLASS(SGD);
 

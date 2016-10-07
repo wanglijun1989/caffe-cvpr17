@@ -30,6 +30,7 @@ class SmoothPoolingLayer : public Layer<Dtype> {
   virtual inline int MinTopBlobs() const { return 1; }
   
   virtual inline int MaxTopBlobs() const { return 2;}
+  virtual void UpdateSmooth(const Dtype smooth);
 
  protected:
   virtual void Forward_cpu(const vector<Blob<Dtype>*>& bottom,

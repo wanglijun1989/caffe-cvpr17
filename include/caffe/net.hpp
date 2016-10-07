@@ -31,6 +31,7 @@ class Net {
 
   /// @brief Initialize a network with a NetParameter.
   void Init(const NetParameter& param);
+  void UpdateSmooth(const Dtype smooth);
 
   /**
    * @brief Run Forward and return the result.

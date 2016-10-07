@@ -240,6 +240,10 @@ message SolverParameter {
   }
   // DEPRECATED: use type instead of solver_type
   optional SolverType solver_type = 30 [default = SGD];
+  optional int32 smooth_interval = 50 [default = 0]; // The step size to increase smooth
+  optional float smooth_factor = 51 [default = 0]; // Smooth increase factor
+  //// The init value of smooth. The smooth filler parameters in smoooth pooling layers will have no effect at all. current_smooth = smooth_init_value 
+  optional float smooth_init_value = 52 [default = 0.1]; 
 }
 
 // A message that stores the solver snapshots

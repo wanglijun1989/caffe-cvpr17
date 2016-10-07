@@ -199,6 +199,9 @@ void Solver<Dtype>::Step(int iters) {
   smoothed_loss_ = 0;
 
   while (iter_ < stop_iter) {
+    if (param_.has_smooth_interval() && iter_ % param_.smooth_interval() == 0) {
+      UpdateSmooth();
+    }
     // zero-init the params
     net_->ClearParamDiffs();
     if (param_.test_interval() && iter_ % param_.test_interval() == 0

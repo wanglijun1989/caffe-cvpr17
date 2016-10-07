@@ -1002,6 +1002,13 @@ void Net<Dtype>::set_net_phase(Phase phase) {
   }
 }
 
+template <typename Dtype> 
+void Net<Dtype>::UpdateSmooth(const Dtype smooth) {
+  for (int layer_id = 0; layer_id < layers_.size(); layer_id++) {
+    layers_[layer_id]->UpdateSmooth(smooth);
+  }
+}
+
 INSTANTIATE_CLASS(Net);
 
 }  // namespace caffe

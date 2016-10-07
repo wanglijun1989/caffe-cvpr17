@@ -72,6 +72,7 @@ class Layer {
     Reshape(bottom, top);
     SetLossWeights(top);
   }
+  virtual void UpdateSmooth(const Dtype smooth) {}
 
   /**
    * @brief Does layer-specific setup: your layer should implement this function
