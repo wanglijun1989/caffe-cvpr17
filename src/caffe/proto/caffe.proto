@@ -568,6 +568,7 @@ message SmoothPoolingParameter {
   optional FillerParameter smooth_filler = 2;
   optional float z = 3 [default = 1.0];
   optional float max_value = 5 [default = 0.0];
+  optional bool fix_smooth = 6 [default = false];
 }
 message OutputDecayParameter {
   optional string regularization_type = 1 [default = "L2"];

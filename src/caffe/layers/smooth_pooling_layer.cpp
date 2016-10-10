@@ -87,6 +87,7 @@ namespace caffe {
     LayerParameter param = this->layer_param_;
     SmoothPoolingParameter pool_param = param.smooth_pooling_param();
     z_ = pool_param.z();
+    fix_smooth_ = pool_param.fix_smooth();
     max_value_ = pool_param.max_value();
     unique_smooth_ = pool_param.unique_smooth(); 
     has_smooth_blobs_ = pool_param.has_smooth_blobs();
@@ -175,7 +176,9 @@ namespace caffe {
 	cur_w_norm[0] += dummy_w_data[0] * dummy_w_data[0];
         cur_top[0] = caffe_cpu_dot(dim_, cur_bottom, cur_weight);
 	cur_top[0] += max_value_* dummy_w_data[0];
-	cur_top[0] -= Dtype(0.5) * cur_smooth * cur_w_norm[0];
+	if (!fix_smooth_) { 
+	  cur_top[0] -= Dtype(0.5) * cur_smooth * cur_w_norm[0];
+	}
       }
     }
     if (top.size() == 2) {
@@ -203,54 +206,54 @@ void SmoothPoolingLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top, co
     }
   }
 
-  if (!has_smooth_blobs_ && propagate_down[1]) {
-    // Gradient with respect to bottom[1]
-    Dtype* smooth_diff = smooth_->mutable_cpu_diff();
-    caffe_set(smooth_->count(), Dtype(0), smooth_diff);
-    if (unique_smooth_) {
-      for (int n = 0; n < num_; n++) {
-        Dtype* cur_smooth_diff = smooth_diff + n;
-        for (int c = 0; c < channels_; c++) {
-          const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
-	  const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
-          *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
-        }
-      }
-    } else {
-      for (int n = 0; n < num_; n++) {
-        for (int c = 0; c < channels_; c++) {
-          Dtype* cur_smooth_diff = smooth_diff + smooth_->offset(n, c);
-          const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
-          const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
-          *cur_smooth_diff = -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
-        }
-      }
-    }
-  } else if (has_smooth_blobs_ && this->param_propagate_down_[0]) {
-    // Gradient with respect to smooth_ param
-    Dtype* smooth_diff = smooth_->mutable_cpu_diff();
-    //caffe_set(smooth_->count(), Dtype(0), smooth_diff);
-    if (unique_smooth_) {
-      for (int n = 0; n < num_; n++) {
-	Dtype* cur_smooth_diff = smooth_diff;
-	for (int c = 0; c < channels_; c++) {
-	  const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
-          const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
-          *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
-
+  if (!fix_smooth_) {
+    if (!has_smooth_blobs_ && propagate_down[1]) {
+      // Gradient with respect to bottom[1]
+      Dtype* smooth_diff = smooth_->mutable_cpu_diff();
+      caffe_set(smooth_->count(), Dtype(0), smooth_diff);
+      if (unique_smooth_) {
+	for (int n = 0; n < num_; n++) {
+	  Dtype* cur_smooth_diff = smooth_diff + n;
+	  for (int c = 0; c < channels_; c++) {
+	    const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
+	    const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
+	    *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
+	  }
+	}
+      } else {
+	for (int n = 0; n < num_; n++) {
+	  for (int c = 0; c < channels_; c++) {
+	    Dtype* cur_smooth_diff = smooth_diff + smooth_->offset(n, c);
+	    const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
+	    const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
+	    *cur_smooth_diff = -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
+	  }
 	}
       }
-    } else {
-      for (int n = 0; n < num_; n++) {
-	for (int c = 0; c < channels_; c++) {
-	  Dtype* cur_smooth_diff = smooth_diff + c;
-	  const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
-          const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
-          *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
+    } else if (has_smooth_blobs_ && this->param_propagate_down_[0]) {
+      // Gradient with respect to smooth_ param
+      Dtype* smooth_diff = smooth_->mutable_cpu_diff();
+      //caffe_set(smooth_->count(), Dtype(0), smooth_diff);
+      if (unique_smooth_) {
+	for (int n = 0; n < num_; n++) {
+	  Dtype* cur_smooth_diff = smooth_diff;
+	  for (int c = 0; c < channels_; c++) {
+	    const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
+	    const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
+	    *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
+
+	  }
+	}
+      } else {
+	for (int n = 0; n < num_; n++) {
+	  for (int c = 0; c < channels_; c++) {
+	    Dtype* cur_smooth_diff = smooth_diff + c;
+	    const Dtype* cur_top_diff = top_diff + top[0]->offset(n, c); 
+	    const Dtype* cur_w_norm = w_norm_data + w_norm_.offset(n, c);
+	    *cur_smooth_diff += -Dtype(0.5) * cur_w_norm[0] * cur_top_diff[0];
+	  }
 	}
       }
-      
-
     }
   }
 
