@@ -444,7 +444,7 @@ layer {
   name: "conv5_3"
   type: "Convolution"
   bottom: "conv5_2"
-  top: "conv5_3"
+  top: "conv_o_5_3"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -469,8 +469,17 @@ layer {
 layer {
   name: "bn_conv5_3"
   type: "BatchNorm"
-  bottom: "conv5_3"
+  bottom: "conv_o_5_3"
   top: "conv5_3"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
 }
 layer {
   name: "scale_conv5_3"
@@ -478,11 +487,11 @@ layer {
   bottom: "conv5_3"
   top: "conv5_3"
   param {
-    lr_mult: 10
+    lr_mult: 100
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 200
     decay_mult: 0
   }
   scale_param {
@@ -501,11 +510,11 @@ layer {
   bottom: "conv5_3"
   top: "conv6"
   param {
-    lr_mult: 10
+    lr_mult: 100
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 200
     decay_mult: 0
   }
   convolution_param {
@@ -523,7 +532,38 @@ layer {
     }
   }
 }
-
+layer {
+  name: "bn_conv6"
+  type: "BatchNorm"
+  bottom: "conv6"
+  top: "conv6"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+layer {
+  name: "scale_conv6"
+  type: "Scale"
+  bottom: "conv6"
+  top: "conv6"
+  param {
+    lr_mult: 100
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 200
+    decay_mult: 0
+  }
+  scale_param {
+    bias_term: true
+  }
+}
 layer {
   name: "relu6"
   type: "ReLU"
@@ -542,7 +582,7 @@ layer {
   bottom: "conv5_3"
   top: "conv5_3_score"
   param {
-    lr_mult: 10 #10000
+    lr_mult: 100 #10000
     decay_mult: 1
   }
   convolution_param {
@@ -565,6 +605,15 @@ layer {
   type: "BatchNorm"
   bottom: "conv5_3_score"
   top: "conv5_3_score"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
 }
 #layer {
 #  name: "scale_conv5_3_score"
@@ -680,7 +729,6 @@ layer {
     }
   }
 }
-
 
 layer {
   name: "con"
