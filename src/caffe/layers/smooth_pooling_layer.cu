@@ -11,7 +11,7 @@ namespace caffe {
 
 
   template <typename Dtype>
-    __global__ void SmoothPoolForward(const int nthreads, const Dtype* bottom_data, const int num, const int channels, const int dim, int* index_data, Dtype* value_data, const bool unique_smooth, const bool has_smooth_blobs, const Dtype z, const Dtype dummy_max_value, const Dtype* smooth_data, Dtype* weight, Dtype* w_norm_data, Dtype* top_data) {
+    __global__ void SmoothPoolForward(const int nthreads, const Dtype* bottom_data, const int num, const int channels, const int dim, int* index_data, Dtype* value_data, const bool unique_smooth, const bool has_smooth_blobs, const Dtype z, const Dtype dummy_max_value, const Dtype* smooth_data, Dtype* weight, Dtype* w_norm_data, const bool fix_smooth, Dtype* top_data) {
       CUDA_KERNEL_LOOP(index, nthreads) {
 	const int n = index / channels;
 	const int c = index % channels;
@@ -105,9 +105,10 @@ namespace caffe {
 	  w_norm[0] += w[i] * w[i];
 	  o[0] += cur_bottom[i] * Dtype(w[i]);
 	}
-
-	w_norm[0] *= -Dtype(0.5);
-	o[0] += mu * w_norm[0];
+	if (! fix_smooth) {
+	  w_norm[0] *= -Dtype(0.5);
+	  o[0] += mu * w_norm[0];
+	}
       }
     }
 
@@ -126,7 +127,7 @@ namespace caffe {
       Blob<Dtype> value(num_, channels_, height_, width_);
       Dtype* value_data = value.mutable_gpu_data();
       SmoothPoolForward<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, bottom_data, num_, channels_, dim_, 
-	  index_data, value_data, unique_smooth_, has_smooth_blobs_, z_, max_value_, smooth_data, weight_data, w_norm_data, top_data);
+	  index_data, value_data, unique_smooth_, has_smooth_blobs_, z_, max_value_, smooth_data, weight_data, w_norm_data, fix_smooth_, top_data);
       if (top.size() == 2) {
 	top[1]->ShareData(weight_);
       }
@@ -196,25 +197,28 @@ namespace caffe {
 	int count = bottom[0]->count();
 	SmoothPoolBackwardBottom<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, top_diff, weight_data, channels_, dim_,  bottom_diff);
       }
-      if (!has_smooth_blobs_ && propagate_down[1]) {
-	Dtype* smooth_diff = smooth_->mutable_gpu_diff();
-	if (unique_smooth_) {
-	  SmoothPoolBackwardUnique<Dtype><<<CAFFE_GET_BLOCKS(num_), CAFFE_CUDA_NUM_THREADS>>>(num_, top_diff, w_norm_data, channels_, smooth_diff); 
-	} else {
-	  int count = top[0]->count();
-	  caffe_gpu_hadamard_product<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, top_diff, w_norm_data, smooth_diff);
-	}
-      } else if (has_smooth_blobs_ && this->param_propagate_down_[0]) {
-	// Gradient with respect to smooth_ param
-	//caffe_gpu_set(smooth_->count(), Dtype(0), smooth_diff);
-	if (unique_smooth_) {
-	  int count = top[0]->count();
-          Dtype* smooth_cpu_diff = smooth_->mutable_cpu_diff();
-	  caffe_gpu_dot(count, w_norm_data, top_diff, smooth_cpu_diff);
-	  //smooth_cpu_diff[0] *= -Dtype(0.5);
-	} else {
-          Dtype* smooth_diff = smooth_->mutable_gpu_diff();
-	  SmoothPoolBackward<Dtype><<<CAFFE_GET_BLOCKS(channels_), CAFFE_CUDA_NUM_THREADS>>>(channels_, top_diff, num_, channels_,  w_norm_data, smooth_diff);
+
+      if (!fix_smooth_) {
+	if (!has_smooth_blobs_ && propagate_down[1]) {
+	  Dtype* smooth_diff = smooth_->mutable_gpu_diff();
+	  if (unique_smooth_) {
+	    SmoothPoolBackwardUnique<Dtype><<<CAFFE_GET_BLOCKS(num_), CAFFE_CUDA_NUM_THREADS>>>(num_, top_diff, w_norm_data, channels_, smooth_diff); 
+	  } else {
+	    int count = top[0]->count();
+	    caffe_gpu_hadamard_product<Dtype><<<CAFFE_GET_BLOCKS(count), CAFFE_CUDA_NUM_THREADS>>>(count, top_diff, w_norm_data, smooth_diff);
+	  }
+	} else if (has_smooth_blobs_ && this->param_propagate_down_[0]) {
+	  // Gradient with respect to smooth_ param
+	  //caffe_gpu_set(smooth_->count(), Dtype(0), smooth_diff);
+	  if (unique_smooth_) {
+	    int count = top[0]->count();
+	    Dtype* smooth_cpu_diff = smooth_->mutable_cpu_diff();
+	    caffe_gpu_dot(count, w_norm_data, top_diff, smooth_cpu_diff);
+	    //smooth_cpu_diff[0] *= -Dtype(0.5);
+	  } else {
+	    Dtype* smooth_diff = smooth_->mutable_gpu_diff();
+	    SmoothPoolBackward<Dtype><<<CAFFE_GET_BLOCKS(channels_), CAFFE_CUDA_NUM_THREADS>>>(channels_, top_diff, num_, channels_,  w_norm_data, smooth_diff);
+	  }
 	}
       }
       CUDA_POST_KERNEL_CHECK;

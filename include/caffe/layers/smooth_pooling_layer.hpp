@@ -42,7 +42,7 @@ class SmoothPoolingLayer : public Layer<Dtype> {
   virtual void Backward_gpu(const vector<Blob<Dtype>*>& top,
       const vector<bool>& propagate_down, const vector<Blob<Dtype>*>& bottom);
 
-  bool has_smooth_blobs_, unique_smooth_;
+  bool has_smooth_blobs_, unique_smooth_, fix_smooth_;
   int num_;
   int channels_;
   int height_, width_;
