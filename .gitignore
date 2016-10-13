@@ -123,5 +123,6 @@ examples/cvpr17-ILT-pretrain-exp1/*.txt
 examples/cvpr17-ILT-pretrain-exp2/*.txt
 examples/cvpr17-ILT-pretrain-exp3/*.txt
 examples/cvpr17-ILT-pretrain-exp4/*.txt
+examples/cvpr17-ILT-pretrain-fs1/*.txt
 nohup*
 log*
