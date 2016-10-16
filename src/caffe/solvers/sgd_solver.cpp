@@ -369,6 +369,11 @@ void SGDSolver<Dtype>::UpdateSmooth() {
   Dtype smooth_factor = this->param_.smooth_factor();
   Dtype smooth_init_value = this->param_.smooth_init_value();
   Dtype current_smooth = this->iter_ / smooth_interval * smooth_factor + smooth_init_value;
+  if (this->param_.has_smooth_upper_bound()) {
+    if (current_smooth > this->param_.smooth_upper_bound()) {
+      current_smooth = this->param_.smooth_upper_bound(); 
+    }
+  }
   this->net_->UpdateSmooth(current_smooth);
 }
 
