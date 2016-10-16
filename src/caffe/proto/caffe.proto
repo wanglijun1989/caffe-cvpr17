@@ -244,6 +244,7 @@ message SolverParameter {
   optional float smooth_factor = 51 [default = 0]; // Smooth increase factor
   //// The init value of smooth. The smooth filler parameters in smoooth pooling layers will have no effect at all. current_smooth = smooth_init_value 
   optional float smooth_init_value = 52 [default = 0.1]; 
+  optional float smooth_upper_bound = 53;
 }
 
 // A message that stores the solver snapshots
