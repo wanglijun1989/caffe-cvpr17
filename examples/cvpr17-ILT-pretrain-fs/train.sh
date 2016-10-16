@@ -1,5 +1,5 @@
 
-./build/tools/caffe train -solver=examples/cvpr17-ILT-pretrain-fs/solver.prototxt -weights=/home/lijun/Research/Code/CVPR17/model/vgg16CAM_train_iter_90000.caffemodel -gpu=0,1 2>&1 1>fs2-0 | tee examples/cvpr17-ILT-pretrain-fs/log-ip-2-0.txt
+./build/tools/caffe train -solver=examples/cvpr17-ILT-pretrain-fs/solver.prototxt -weights=/home/lijun/Research/Code/CVPR17/model/vgg16CAM_train_iter_90000.caffemodel -gpu=0,1 2>&1 1>fs3-0 | tee examples/cvpr17-ILT-pretrain-fs/log-ip-3-0.txt
 #resotre from iter 94000
 #./build/tools/caffe train -solver=examples/cvpr17-ILT-pretrain/solver.prototxt -snapshot=models/cvpr17-ILT-pretrain/ip-1_iter_94000.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17-ILT-pretrain/log-ip-2.txt 
 

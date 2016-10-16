@@ -10,11 +10,12 @@ max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 500
-snapshot_prefix: "models/cvpr17-ILT-pretrain-fs/ip-2-0"
+snapshot_prefix: "models/cvpr17-ILT-pretrain-fs/ip-3-0"
+iter_size: 4
 solver_mode: GPU
 test_compute_loss: true
 test_initialization: false
 clip_gradients: 40
 smooth_interval: 5000
 smooth_factor: 2
-smooth_init_value: 10
+smooth_init_value: 5
