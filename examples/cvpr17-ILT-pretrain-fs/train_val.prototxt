@@ -613,8 +613,6 @@ layer {
   bottom: "conv6"
   top: "conv6"
   relu_param {
-    engine: CAFFE
-    upper_bound: 15
     negative_slope: 0.01
   }
 }
@@ -688,7 +686,7 @@ layer {
   top: "conv5_3_score"
   output_decay_param {
     regularization_type: "L1"
-    output_decay: 1e-5
+    output_decay: 1e-4
   }
 }
 

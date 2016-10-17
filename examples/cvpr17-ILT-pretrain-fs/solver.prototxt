@@ -3,19 +3,19 @@ test_iter: 577
 test_interval: 2000
 base_lr: 0.001
 lr_policy: "step"
-gamma: 0.5
-stepsize: 5000 # 200000
+gamma: 0.1
+stepsize:  200000
 display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 500
-snapshot_prefix: "models/cvpr17-ILT-pretrain-fs/ip-3-0"
-iter_size: 4
+snapshot_prefix: "models/cvpr17-ILT-pretrain-fs/ip-4-0"
 solver_mode: GPU
 test_compute_loss: true
 test_initialization: false
 clip_gradients: 40
-smooth_interval: 5000
+smooth_interval: 2000
 smooth_factor: 2
-smooth_init_value: 5
+smooth_init_value: 1
+smooth_upper_bound: 10
