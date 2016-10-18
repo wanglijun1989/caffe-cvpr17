@@ -1,52 +1,12 @@
 name: "VGG_ILSVRC_16_layers"
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TRAIN
-  }
 
-# mean pixel / channel-wise mean instead of mean image
-  transform_param {
-    crop_size: 224
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
-    mirror: true
-  }
-  data_param {
-    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_train_lmdb"
-    batch_size: 32
-    backend: LMDB
-    multi_label: true
-    label_size: 12
-  }
-}
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  transform_param {
-    crop_size: 224
-    mean_value: 103.939
-    mean_value: 116.779
-    mean_value: 123.68
-    mirror: false
-  }
-  data_param {
-    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/image/ilsvrc14_val_lmdb"
-    batch_size: 32
-    backend: LMDB
-    multi_label: true
-    label_size: 12
-  }
-}
+
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 256
+input_dim: 256
+
 layer {
   name: "conv1_1"
   type: "Convolution"
@@ -484,7 +444,7 @@ layer {
   name: "conv5_3"
   type: "Convolution"
   bottom: "conv5_2"
-  top: "conv5_3"
+  top: "conv_o_5_3"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -509,7 +469,7 @@ layer {
 layer {
   name: "bn_conv5_3"
   type: "BatchNorm"
-  bottom: "conv5_3"
+  bottom: "conv_o_5_3"
   top: "conv5_3"
   param {
     lr_mult: 0
@@ -613,8 +573,6 @@ layer {
   bottom: "conv6"
   top: "conv6"
   relu_param {
-    engine: CAFFE
-    upper_bound: 10
     negative_slope: 0.01
   }
 }
@@ -720,6 +678,7 @@ layer {
   type: "SmoothPooling"
   bottom: "conv6_mask"
   top: "pool6"
+  top: "weight"
   param {
     lr_mult: 0
     decay_mult: 0
@@ -753,11 +712,11 @@ layer {
   bottom: "pool6"
   top: "fc7"
   param {
-    lr_mult: 100
+    lr_mult: 10
     decay_mult: 1
   }
   param {
-    lr_mult: 200
+    lr_mult: 20
     decay_mult: 0
   }
   inner_product_param {
@@ -772,48 +731,10 @@ layer {
     }
   }
 }
-layer {
-  name: "loss"
-  type: "SigmoidMultiLabelLoss"
-  bottom: "fc7"
-  bottom: "label"
-  top: "loss"
-  loss_weight: 200
-  loss_param {
-    negative_scale: 0.02
-  }
-  include {
-    phase: TRAIN
-  }
-}
 
 layer {
-  name: "test-loss"
-  type: "SigmoidMultiLabelLoss"
+  name: "con"
+  type: "Sigmoid"
   bottom: "fc7"
-  bottom: "label"
-  top: "test_loss"
-  top: "prob"
-  top: "label_vector"
-  loss_weight: 200
-  loss_weight: 0
-  loss_weight: 0
-  loss_param {
-    negative_scale: 0.02
-  }
-  include {
-    phase: TEST
-  }
-}
-
-layer {
-  name: "accuracy"
-  type: "OverlapAccuracy"
-  bottom: "prob"
-  bottom: "label_vector"
-  top: "precision"
-  top: "recall"
-  include {
-    phase: TEST
-  }
+  top: "con"
 }
