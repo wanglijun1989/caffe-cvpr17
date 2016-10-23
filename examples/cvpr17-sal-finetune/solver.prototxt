@@ -1,7 +1,7 @@
 net: "examples/cvpr17-sal-finetune/train_val.prototxt"
 test_iter: 26
 test_interval: 500
-base_lr: 0.001
+base_lr: 0.0001
 lr_policy: "step"
 gamma: 0.
 stepsize:  1000000
@@ -10,7 +10,7 @@ max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
 snapshot: 500
-snapshot_prefix: "models/cvpr17-sal-finetune/sal-finetune-1-0"
+snapshot_prefix: "models/cvpr17-sal-finetune/sal-finetune-1-1"
 solver_mode: GPU
 test_compute_loss: true
 test_initialization: false
