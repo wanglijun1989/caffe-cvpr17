@@ -1,7 +1,7 @@
 
-#./build/tools/caffe train -solver=examples/cvpr17-sal-finetune/solver.prototxt -weights=models/cvpr17-ILT-pretrain-fs/ip-1_iter_5000.caffemodel -gpu=0,1 2>&1  | tee examples/cvpr17-sal-finetune/log-1-0.txt
+./build/tools/caffe train -solver=examples/cvpr17-sal-finetune/solver.prototxt -weights=models/cvpr17-ILT-pretrain-fs/ip-1_iter_5000.caffemodel -gpu=0,1 2>&1  | tee examples/cvpr17-sal-finetune/log-2-0.txt
 #resotre from iter 94000
-./build/tools/caffe train -solver=examples/cvpr17-sal-finetune/solver.prototxt -weights=models/cvpr17-sal-finetune/sal-finetune-1-0_iter_42500.caffemodel -gpu=0,1 2>&1 | tee examples/cvpr17-sal-finetune/log-1-1.txt 
+#./build/tools/caffe train -solver=examples/cvpr17-sal-finetune/solver.prototxt -weights=models/cvpr17-sal-finetune/sal-finetune-1-0_iter_42500.caffemodel -gpu=0,1 2>&1 | tee examples/cvpr17-sal-finetune/log-1-1.txt 
 
 #resotre from iter 102500
 #./build/tools/caffe train -solver=examples/cvpr17-ILT-pretrain-exp2/solver.prototxt -snapshot=models/cvpr17-ILT-pretrain-exp2/ip-1_iter_102500.solverstate -gpu=0,1 2>&1 | tee examples/cvpr17-ILT-pretrain-exp2/log-ip-1-3.txt 
