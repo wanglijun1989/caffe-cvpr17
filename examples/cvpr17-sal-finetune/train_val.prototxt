@@ -13,7 +13,7 @@ layer {
     mean_value: 123.68
   }
   data_param {
-    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/ilsvrc14_train_sal_png_img_lmdb"
+    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/ilsvrc14_train_sal_2_png_img_lmdb"
     batch_size: 32
     backend: LMDB
   }
@@ -27,7 +27,7 @@ layer {
     phase: TRAIN
   }
   data_param {
-    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/ilsvrc14_train_sal_png_map_lmdb"
+    source: "/home/lijun/Research/DataSet/ILSVRC2014/ILSVRC2014_DET/ilsvrc14_train_sal_2_png_map_lmdb"
     batch_size: 32
     backend: LMDB
   }
